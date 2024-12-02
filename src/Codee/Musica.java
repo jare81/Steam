@@ -4,26 +4,25 @@
  */
 package Codee;
 
-import javazoom.jl.decoder.BitstreamException;
-import javazoom.jl.decoder.JavaLayerException;
-import javazoom.jl.player.Player;
-import java.io.FileInputStream;
-import java.io.IOException;
+
+
 public class Musica {
     private String titulo;
     private String artista;
     private String album;
-    private int duracion;
+    private String duracion;
+    private String portada;
     private String ruta;
     
-    public Musica(String titulo, String artista, String album, int duracion, String ruta){
+    public Musica(String titulo, String artista, String album, String ruta, String portada){
         this.titulo = titulo;
         this.artista=artista;
         this.album=album;
-        this.duracion=duracion;
+        this.portada=portada;
         this.ruta=ruta;
+        
     }
-    
+     
     public String getTitulo(){
         return titulo;
     }
@@ -36,13 +35,21 @@ public class Musica {
         return album;
     }
     
-    public int getDuracion(){
-        return duracion;
-    }
     
     public String getRuta(){
         return ruta;
     }
+    
+     public String getPortada() {
+        return portada;
+    }
+   
+     @Override
+    public String toString() {
+        return "Título: " + titulo + ", Artista: " + artista + ", Álbum: " + album + ", Ruta: " + ruta;
+    }
+
+    
     
     
     

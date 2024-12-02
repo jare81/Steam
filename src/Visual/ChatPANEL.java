@@ -26,6 +26,7 @@ import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -53,6 +54,12 @@ public class ChatPANEL extends JPanel {
     private DefaultListModel<Amigos> modelo;
     private JTextArea areaT;
     private JList<Amigos> resultadosArea;
+    
+    private String foto;
+    private String nombre;
+    private Usuario temp;
+    private JLabel labelImagen;
+    private JTextArea info;
 
     public ChatPANEL(Administrador user) {
         this.user = user;
@@ -61,15 +68,19 @@ public class ChatPANEL extends JPanel {
         setBackground(new Color(0xB5BAC9));
 
         modelo = new DefaultListModel<>();
-        // Panel izquierdo (opcional)
+        foto = "src/imags/xx.png";
+        nombre=" Chat general";
+        
+        // Panel izquierdo 
         JPanel panelArea = crearPanelArea();
         add(panelArea, BorderLayout.WEST);
 
         // Panel derecho
         JPanel amigosPanel = crearPanelAmigos();
         add(amigosPanel, BorderLayout.EAST);
+        
+        
 
-        // Panel central
     }
 
     private JPanel crearPanelArea() {
@@ -89,10 +100,51 @@ public class ChatPANEL extends JPanel {
         JLabel titulo = new JLabel("COMPARTE CON TUS AMIGOS");
         estiloF(titulo);
         panelArea.add(titulo, grid);
+        
+        
+        grid.gridy++;
+        grid.fill = GridBagConstraints.HORIZONTAL;
+        grid.weightx = 1.0;
+        grid.weighty = 0.0;
+        JPanel quien = new JPanel(new GridBagLayout());
+        quien.setBackground(new Color(0x536878));
+        
+                
+                    GridBagConstraints gridI = new GridBagConstraints();
+                    gridI.insets = new Insets(10, 10, 10, 10); 
+                    
+                    
+
+                    ImageIcon imagenOriginal = new ImageIcon(foto);
+                    Image imagenRedimensionada = imagenOriginal.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+                    ImageIcon imagen = new ImageIcon(imagenRedimensionada);
+                    labelImagen = new JLabel(imagen);
+                    gridI.gridy = 0;
+                    gridI.gridx = 0;
+                    quien.add(labelImagen, gridI);
+
+                    gridI.gridx = 1;
+                    gridI.gridy = 0;
+                    gridI.gridwidth = 2;
+                    gridI.fill = GridBagConstraints.HORIZONTAL;
+                    gridI.weightx = 1.0;
+                    gridI.weighty = 0.0;
+                    
+                    info = new JTextArea();
+                    info.setPreferredSize(new Dimension(750, 50));
+                    info.setBackground(new Color(0x536878));
+                    info.setForeground(Color.WHITE);
+                    info.setBorder(BorderFactory.createLineBorder(Color.WHITE));
+                    info.setFont(new Font("Arial Rounded MT Bold", 0, 14));
+                    info.setEditable(false);
+                    
+                    info.setText("\n  -> : " + nombre + "\n"
+                            + "  Estado: " + actual.getFecha()  + "\n");
+                    quien.add(info, gridI);
+         panelArea.add(quien, grid);
 
         // Área de texto
         grid.gridy++;
-        grid.gridwidth = 2;
         grid.fill = GridBagConstraints.BOTH;
         grid.weightx = 1.0;
         grid.weighty = 1.0;
@@ -127,13 +179,7 @@ public class ChatPANEL extends JPanel {
 
         grid.gridx++;
         JButton enviar = new JButton("Enviar");
-        /*enviar.addActionListener(e -> {
-            String mensaje = txtBuscar.getText();
-            if (!mensaje.isBlank()) {
-                areaT.append("Tú: " + mensaje + "\n");
-                txtBuscar.setText("");
-            }
-        });*/
+        
 
         enviar.addActionListener(e -> {
             Amigos amigoSeleccionado = resultadosArea.getSelectedValue(); 
@@ -241,7 +287,7 @@ public class ChatPANEL extends JPanel {
         // Área de resultados
         grid.gridy++;
         //JList<String> resultadosArea = new JList<>(modelo); estiloF(resultadosArea);
-        resultadosArea = new JList<>(modelo); // Usa DefaultListModel<Amigos>
+        resultadosArea = new JList<>(modelo); 
         resultadosArea.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);  
         resultadosArea.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
             JLabel label = new JLabel(value.getNombre());
@@ -268,6 +314,19 @@ public class ChatPANEL extends JPanel {
             Amigos amigoSeleccionado = resultadosArea.getSelectedValue(); 
             if (amigoSeleccionado != null) {
                 ArrayList<String> mensajes = amigoSeleccionado.cargarConversacionCompartida(amigoSeleccionado.getNombre(), actual.getDirect());
+                temp = user.obtenerUsuario(amigoSeleccionado.getNombre());
+                nombre = temp.getUsername().toUpperCase();
+                foto = temp.getFoto();
+                
+                ImageIcon imagenOriginal = new ImageIcon(foto);
+                Image imagenRedimensionada = imagenOriginal.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+                ImageIcon imagen = new ImageIcon(imagenRedimensionada);
+                labelImagen.setIcon(imagen);  // Actualiza la imagen
+
+                // Actualizar el JTextArea con el nombre y estado
+                info.setText("\n  -> : " + nombre + "\n" + "  Estado: " + actual.getFecha() + "\n");
+
+                
                 areaT.setText(""); 
                 for (String mensaje : mensajes) {
                     areaT.append(mensaje + "\n\n");

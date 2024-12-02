@@ -4,7 +4,6 @@
  */
 package Codee;
 
-import java.io.DataOutputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -13,8 +12,6 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.io.RandomAccessFile;
 import java.util.ArrayList;
-import java.util.Arrays;
-import javax.swing.DefaultListModel;
 import javax.swing.JOptionPane;
 
 /**
@@ -40,32 +37,27 @@ public class Usuario {
     private ArrayList<String> amixes;
     private ArrayList<String> solicitudesAmistad;
 
+    private File song;
+
     private Administrador admin;
 
-    public Usuario(String username, String pass, String fecha, boolean activo
-    /*File bMusical, File bJuegos, File bChat*/) {
+    public Usuario(String username, String pass, String fecha, boolean activo, String descripcion, String foto) {
 
         this.username = username;
         this.pass = pass;
         this.fecha = fecha;
         this.activo = activo;
-        descripcion = "";
-        foto = "src/imags/person1.png";
+        this.descripcion = descripcion.isEmpty() ? "" : descripcion;
+        this.foto = foto.isEmpty() ? "" : foto;
 
-        this.amixes = new ArrayList<>();
-        this.solicitudesAmistad = new ArrayList<>();
+        amixes = new ArrayList<>();
+        solicitudesAmistad = new ArrayList<>();
 
-
-        /* File carpetaUsuario = new File("src/users/" + username );
-        if (!carpetaUsuario.exists()) {
-            carpetaUsuario.mkdirs();
-        }*/
         directorioP = new File("src/users/" + username);
         carpetaUsuario();
         iniciarArchivo();
         cargarAmigos();
 
-        //iniciarRandom();
     }
 
     public File getDirect() {
@@ -131,13 +123,6 @@ public class Usuario {
             this.descripcion = archivo.readUTF();
             this.foto = archivo.readUTF();
 
-            String solicitudes = archivo.readUTF();
-            if (!solicitudes.isEmpty()) {
-                this.solicitudesAmistad = new ArrayList<>(Arrays.asList(solicitudes.split(",")));
-            } else {
-                this.solicitudesAmistad = new ArrayList<>();
-            }
-
             System.out.println("Usuario cargado: " + username + ", Contraseña: " + pass + ", Fecha: " + fecha + ", Activo: " + activo);
         } catch (IOException e) {
             System.out.println("Error al cargar el archivo " + e.getMessage());
@@ -153,100 +138,82 @@ public class Usuario {
             archivo.writeBoolean(activo);
             archivo.writeUTF(descripcion);
             archivo.writeUTF(foto);
-            archivo.writeUTF(String.join(",", solicitudesAmistad));
         } catch (IOException e) {
             System.out.println("Error al actualizar datos " + e.getMessage());
         }
     }
 
+    
+    ////////////////////////////////////FUNCIONES                  AMIGOS Y SOLICITUDES
     public void agregarAmigo(String nombreAmigo) {
-       /* File archivoAmigos = new File(directorioP, "amigos" + nombreAmigo + ".amix");
-
+          cargarAmigos();
         if (!amixes.contains(nombreAmigo)) {
             amixes.add(nombreAmigo);
-            try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(archivoAmigos))) {
-                for (String amigo : amixes) {
-                    dos.writeUTF(amigo);
-                }
-            } catch (IOException e) {
-                System.out.println("Error al guardar amigos: " + e.getMessage());
+            guardarAmigos();
+
+            // Obtener el amigo
+            Usuario amigo = obtenerUsuarioPorNombre(nombreAmigo);
+            if (amigo != null) {
+                amigo.amixes.add(username);
+                amigo.guardarAmigos();  
             }
-            System.out.println("Amigo agregado: " + nombreAmigo);
+            JOptionPane.showMessageDialog(null,"Amigo agregado: " + nombreAmigo);
         } else {
-            System.out.println("El amigo ya está en la lista.");
+            JOptionPane.showMessageDialog(null,"El amigo ya está en la lista.");
         }
-
-        actualizarArchivo();
-        System.out.println("Amigo agregado: " + nombreAmigo);*/
-       if (!amixes.contains(nombreAmigo)) {
-        amixes.add(nombreAmigo);
-        guardarAmigos();
-
-        // Agregar el usuario actual como amigo en el archivo de amigos del otro usuario
-        Usuario amigo = obtenerUsuarioPorNombre(nombreAmigo);
-        if (amigo != null) {
-            amigo.amixes.add(this.username);
-            amigo.guardarAmigos();
-        }
-        System.out.println("Amigo agregado: " + nombreAmigo);
-    } else {
-        System.out.println("El amigo ya está en la lista.");
-    }
-       
     }
 
     public void eliminarAmigo(String nombreAmigo) {
-        /*if (amixes.remove(nombreAmigo)) {
-            actualizarArchivo();
-            File archivoAmigos = new File(directorioP, "amigos/" + nombreAmigo + ".amix");
-            if (archivoAmigos.exists()) {
-                archivoAmigos.delete();
-            }
-            System.out.println("Amigo eliminado: " + nombreAmigo);
+        cargarAmigos();
+        if (amixes.remove(nombreAmigo)) {
+            guardarAmigos();
+            
+
+            Usuario amigo = obtenerUsuarioPorNombre(nombreAmigo);
+            
+                if (amigo != null) {
+                    amigo.amixes.remove(username);
+                    amigo.guardarAmigos();  
+                 }
+               
+            JOptionPane.showMessageDialog(null, "Amigo eliminado: " + nombreAmigo);
         } else {
             System.out.println("El amigo no está en la lista.");
-        }*/
-        if (amixes.remove(nombreAmigo)) {
-        guardarAmigos();
-        
-        // Remover el usuario actual de la lista de amigos del otro usuario
-        Usuario amigo = obtenerUsuarioPorNombre(nombreAmigo);
-        if (amigo != null && amigo.amixes.remove(this.username)) {
-            amigo.guardarAmigos();
         }
-        System.out.println("Amigo eliminado: " + nombreAmigo);
-    } else {
-        System.out.println("El amigo no está en la lista.");
-    }
-        
-        
     }
 
-    private void cargarAmigos() {
-        File archivoAmigos = new File(carpetaAmigos, "amigos.amix");
+    public void cargarAmigos() {
+        File archivoAmigos = new File(directorioP + "/amigos/amigos.amix");
         if (archivoAmigos.exists()) {
             try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(archivoAmigos))) {
                 amixes = (ArrayList<String>) ois.readObject();
+                System.out.println("Lista de amigos cargada desde archivo binario.");
             } catch (IOException | ClassNotFoundException e) {
-                System.out.println("Error al cargar amigos: " + e.getMessage());
+                System.out.println("Error al cargar la lista de amigos: " + e.getMessage());
             }
+        } else {
+            System.out.println("No se encontró archivo binario de amigos.");
         }
     }
 
     private void guardarAmigos() {
-        File archivoAmigos = new File(carpetaAmigos, "amigos.amix");
+        File archivoAmigos = new File(directorioP + "/amigos/amigos.amix");
+
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivoAmigos))) {
             oos.writeObject(amixes);
+            System.out.println("Lista de amigos guardada en formato binario.");
         } catch (IOException e) {
-            System.out.println("Error al guardar amigos: " + e.getMessage());
+            System.out.println("Error al guardar la lista de amigos: " + e.getMessage());
         }
     }
 
     public ArrayList<String> getAmigos() {
+        cargarAmigos();
         return new ArrayList<>(amixes);
     }
 
     public boolean isAmigo(Usuario usuario) {
+         cargarAmigos();
         return amixes.contains(usuario.getUsername());
     }
 
@@ -263,43 +230,51 @@ public class Usuario {
             JOptionPane.showMessageDialog(null, "Ya son amigos.");
             return;
         }
+
+        // receptor
         receptor.solicitudesAmistad.add(this.username);
         receptor.guardarSolicitudes();
+
+        //remitente
+        this.guardarSolicitudes();
+
         JOptionPane.showMessageDialog(null, "Solicitud enviada a: " + receptor.getUsername());
     }
 
     public void aceptarSolicitud(String amigoNombre) {
-        if (solicitudesAmistad.contains(amigoNombre)) {
-            // Agregar el amigo a ambas listas
-            amixes.add(amigoNombre);
-            Usuario amigo = obtenerUsuarioPorNombre(amigoNombre);
-            if (amigo != null) {
-                amigo.amixes.add(this.username);
-                amigo.guardarAmigos();
-            }
-
-            solicitudesAmistad.remove(amigoNombre);
-            guardarAmigos();
-            guardarSolicitudes();
-
-            JOptionPane.showMessageDialog(null, "Ahora eres amigo de: " + amigoNombre);
-        } else {
+        if (!solicitudesAmistad.contains(amigoNombre)) {
             JOptionPane.showMessageDialog(null, "No hay una solicitud pendiente de: " + amigoNombre);
+            return;
         }
 
+        Usuario remitente = obtenerUsuarioPorNombre(amigoNombre);
+        if (remitente == null) {
+            JOptionPane.showMessageDialog(null, "El usuario no existe.");
+            return;
+        }
+
+        this.agregarAmigo(amigoNombre);
+        remitente.agregarAmigo(this.username);
+
+        solicitudesAmistad.remove(amigoNombre);
+        guardarSolicitudes();
+        
+        this.guardarAmigos(); 
+        remitente.guardarAmigos();
+        JOptionPane.showMessageDialog(null, "Ahora eres amigo de: " + amigoNombre);
     }
 
     public void rechazarSolicitud(String nombreUsuario) {
         if (solicitudesAmistad.remove(nombreUsuario)) {
             guardarSolicitudes();
-            System.out.println("Solicitud rechazada de: " + nombreUsuario);
+            JOptionPane.showMessageDialog(null, "Solicitud rechazada para: " + nombreUsuario);
         } else {
-            System.out.println("No hay una solicitud pendiente de: " + nombreUsuario);
+            JOptionPane.showMessageDialog(null, "No hay una solicitud pendiente de: " + nombreUsuario);
         }
     }
 
     private void guardarSolicitudes() {
-        File archivoSolicitudes = new File(directorioP, "solicitudes.bin");
+        File archivoSolicitudes = new File(directorioP, "solicitudes.sol");
         try (ObjectOutputStream oos = new ObjectOutputStream(new FileOutputStream(archivoSolicitudes))) {
             oos.writeObject(solicitudesAmistad);
         } catch (IOException e) {
@@ -307,21 +282,27 @@ public class Usuario {
         }
     }
 
-    public void actualizarListaAmigos(DefaultListModel<String> modeloListaAmigos) {
-        modeloListaAmigos.clear();
-        for (String amigo : amixes) { 
-            modeloListaAmigos.addElement(amigo); 
-        }
-    }
+    
 
     public ArrayList<String> getSolicitudesPendientes() {
-        return new ArrayList<>(solicitudesAmistad); // Devuelve una copia para evitar modificaciones directas
+        return new ArrayList<>(solicitudesAmistad);
     }
 
     private Usuario obtenerUsuarioPorNombre(String nombre) {
         File carpetaUsuario = new File("src/users/" + nombre);
         if (carpetaUsuario.exists()) {
-            return new Usuario(nombre, "", "", true);
+
+            Usuario usuario = new Usuario(nombre, "", "", true, "", "");
+            File archivoAmigos = new File(carpetaUsuario.getPath() + "/amigos/amigos.amix");
+            if (archivoAmigos.exists()) {
+                try (ObjectInputStream ois = new ObjectInputStream(new FileInputStream(archivoAmigos))) {
+                    usuario.amixes = (ArrayList<String>) ois.readObject();
+                    System.out.println("Lista de amigos cargada para: " + nombre);
+                } catch (IOException | ClassNotFoundException e) {
+                    System.out.println("Error al cargar la lista de amigos para " + nombre + ": " + e.getMessage());
+                }
+            }
+            return usuario;
         }
         return null;
     }
@@ -363,10 +344,12 @@ public class Usuario {
 
     public void setFoto(String ff) {
         this.foto = ff;
+        actualizarArchivo();
     }
 
     public String getFoto() {
         return foto;
+
     }
 
     public void cerrarArchivo() {

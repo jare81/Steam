@@ -97,10 +97,10 @@ public class PerfilPANEL extends JPanel {
         gridI.gridheight = 3;
         per.add(labelImagen, gridI);
 
-        gridI.gridheight = 1; // Restablecer altura de celda
+        gridI.gridheight = 1; 
         gridI.gridx = 1;
 
-        //informacion
+        
         gridI.gridy = 0;
         JTextArea info = new JTextArea();
         info.setPreferredSize(new Dimension(750, 150));
@@ -241,21 +241,21 @@ public class PerfilPANEL extends JPanel {
             }
         });
 
-        //text actividad
+       
         JTextArea actividadA = new JTextArea();
         actividadA.setBackground(new Color(0xB5BAC9));
         per.setBackground(new Color(0x536878));
         grid.gridy = 2;
         grid.gridx = 0;
-        grid.weightx = 1.0; // Expandir horizontalmente
-        grid.weighty = 1.0; // Expandir verticalmente
+        grid.weightx = 1.0; 
+        grid.weighty = 1.0; 
         grid.insets = new Insets(10, 20, 20, 20);
-        grid.fill = GridBagConstraints.BOTH; // Expandir en ambas direcciones
-        grid.gridheight = 2; // Aumentar la altura del componente
+        grid.fill = GridBagConstraints.BOTH; 
+        grid.gridheight = 2; 
         perfil.add(actividadA, grid);
 
-        actividadA.setLineWrap(true); // ancho limitado
-        actividadA.setWrapStyleWord(true); // palabras completas
+        actividadA.setLineWrap(true);
+        actividadA.setWrapStyleWord(true); 
 
         JScrollPane scrollPane2 = new JScrollPane(actividadA);
         scrollPane2.setPreferredSize(new Dimension(300, 200));
@@ -300,16 +300,14 @@ public class PerfilPANEL extends JPanel {
 
         JPanel soli = new JPanel(new FlowLayout(FlowLayout.LEFT));
         soli.setBackground(new Color(0x536878));
-        //JLabel buscarL = new JLabel("Buscar Usuarios     ");estiloF(buscarL);
         JButton buscarB = new JButton("Enviar Solicitud");estiloB(buscarB);
-        //panel.add(buscarL);
         soli.add(buscarB);
         grid.gridy = 1;
         grid.gridx = 0;
         grid.weightx = 1.0;
         grid.weighty = 0.0;
         grid.fill = GridBagConstraints.HORIZONTAL;
-        grid.insets = new Insets(10, 20, 10, 20); // Márgenes
+        grid.insets = new Insets(10, 20, 10, 20); 
         amigos.add(soli, grid);
         
         
@@ -328,10 +326,10 @@ public class PerfilPANEL extends JPanel {
 
         grid.gridy = 2;
         grid.gridx = 0;
-        grid.weightx = 1.0; // Expandir horizontalmente
-        grid.weighty = 1.0; // Expandir verticalmente
+        grid.weightx = 1.0; 
+        grid.weighty = 1.0; 
         grid.insets = new Insets(10, 20, 20, 20);
-        grid.fill = GridBagConstraints.BOTH; // Expandir en ambas direcciones
+        grid.fill = GridBagConstraints.BOTH; 
 
         amigos.add(scrollPane, grid);
         
@@ -389,7 +387,7 @@ public class PerfilPANEL extends JPanel {
         buscarF.addKeyListener(new KeyAdapter() {
             @Override
             public void keyPressed(KeyEvent e) {
-                String palabraClave = buscarF.getText().trim(); // Obtener y limpiar espacios
+                String palabraClave = buscarF.getText().trim(); 
                 ArrayList<Usuario> resultados;
 
                 if (!palabraClave.isEmpty()) {
@@ -494,10 +492,7 @@ public class PerfilPANEL extends JPanel {
         com.setForeground(new Color(0, 0, 0));
     }
 
-    public void actualizarContenido(String info) {
-        // Método para actualizar contenido dinámico si es necesario
-    }
-
+   
     private void cargarLista(ArrayList<Usuario> usuarios, Usuario actual) {
         modelo.clear();
 

@@ -1,6 +1,7 @@
 package Visual;
 
 import Codee.Administrador;
+import Codee.Reproductor;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
@@ -17,16 +18,17 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 
 public class InterfazFRAME extends JFrame {
     private Administrador user;
     private CardLayout cardLayout;
     private JPanel contenido;
+    private Reproductor rep;
     
     public InterfazFRAME(Administrador user) {
        this.user=user;
+       rep = new Reproductor();
         
         setSize(500, 500);
         setTitle("INTERFAZ");
@@ -47,7 +49,7 @@ public class InterfazFRAME extends JFrame {
         contenido.setBackground(Color.LIGHT_GRAY);
         add(contenido, BorderLayout.CENTER);
         
-        SpotifyPANEL spotify = new SpotifyPANEL();
+        SpotifyPANEL spotify = new SpotifyPANEL(user);
         SteamPANEL steam = new SteamPANEL();
         PerfilPANEL perfil = new PerfilPANEL(user);
         ChatPANEL chat = new ChatPANEL(user);
@@ -142,6 +144,7 @@ public class InterfazFRAME extends JFrame {
          cerrarB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 user.cerrarSesion();
+              
                 setVisible(false);
                 new MenuFRAME(user).setVisible(true);
             }
