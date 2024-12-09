@@ -4,6 +4,12 @@
  */
 package Visual;
 
+import Chat.Cliente;
+import Chat.ClienteView;
+import Chat.GestorConversaciones;
+import Chat.Mensaje;
+import Chat.Servidor;
+import Chat.OtroChat;
 import Codee.Amigos;
 import Codee.Administrador;
 import Codee.Usuario;
@@ -21,8 +27,15 @@ import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.io.DataInputStream;
+import java.io.DataOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.net.Socket;
 import java.util.ArrayList;
+import java.util.List;
+import java.util.Observable;
+import java.util.Observer;
 import javax.swing.BorderFactory;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -37,23 +50,53 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.ListSelectionModel;
+import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 import javax.swing.border.Border;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
  * @author Dell
  */
-public class ChatPANEL extends JPanel {
+public class ChatPANEL extends JPanel implements Observer {
 
     /*actividadA.setBackground(new Color(0xB5BAC9));
         per.setBackground(new Color(0x536878));*/
+    
+    //PARA CHAT
+    private String nombre2;
+   
+    
+    private OtroChat sv;
+    private JTextField txtMensaje;
+    private  JButton bnenviar;
+      private JTextArea areaT;
+     
+    
+     
+     ArrayList<Usuario> resultados;
+     
+     boolean isOn=false;
+     private Cliente cliente;
+     private Cliente cliente2;
+     private String mensaje;
+    private GestorConversaciones gestor;
+    private Usuario destino;
+    
+    
+    
+   
+    
+    
     private Administrador user;
     private Usuario actual;
     private Usuario usuario;
-    private DefaultListModel<Amigos> modelo;
-    private JTextArea areaT;
-    private JList<Amigos> resultadosArea;
+    private DefaultListModel<String> modelo;
+    private  JTextField txtBuscar;
+  
+    private JList<String> resultadosArea;
     
     private String foto;
     private String nombre;
@@ -68,7 +111,7 @@ public class ChatPANEL extends JPanel {
         setBackground(new Color(0xB5BAC9));
 
         modelo = new DefaultListModel<>();
-        foto = "src/imags/xx.png";
+        foto = "src/imags/discord.png";
         nombre=" Chat general";
         
         // Panel izquierdo 
@@ -79,8 +122,13 @@ public class ChatPANEL extends JPanel {
         JPanel amigosPanel = crearPanelAmigos();
         add(amigosPanel, BorderLayout.EAST);
         
+        File directorio = new File("Chat");
+            if (!directorio.exists()) {
+                directorio.mkdir();
+            }
+       
         
-
+         
     }
 
     private JPanel crearPanelArea() {
@@ -116,7 +164,7 @@ public class ChatPANEL extends JPanel {
                     
 
                     ImageIcon imagenOriginal = new ImageIcon(foto);
-                    Image imagenRedimensionada = imagenOriginal.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
+                    Image imagenRedimensionada = imagenOriginal.getImage().getScaledInstance(50, 50, Image.SCALE_SMOOTH);
                     ImageIcon imagen = new ImageIcon(imagenRedimensionada);
                     labelImagen = new JLabel(imagen);
                     gridI.gridy = 0;
@@ -135,11 +183,11 @@ public class ChatPANEL extends JPanel {
                     info.setBackground(new Color(0x536878));
                     info.setForeground(Color.WHITE);
                     info.setBorder(BorderFactory.createLineBorder(Color.WHITE));
-                    info.setFont(new Font("Arial Rounded MT Bold", 0, 14));
+                    info.setFont(new Font("Arial Rounded MT Bold", 0, 16));
                     info.setEditable(false);
                     
-                    info.setText("\n  -> : " + nombre + "\n"
-                            + "  Estado: " + actual.getFecha()  + "\n");
+                    info.setText("" + nombre + "\n"
+                            + "  Estado:  Activo");
                     quien.add(info, gridI);
          panelArea.add(quien, grid);
 
@@ -155,6 +203,7 @@ public class ChatPANEL extends JPanel {
         areaT.setBackground(new Color(0xB5BAC9));
         areaT.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         
+         Servidor.getInstance(6000).addObserver(this);
         JScrollPane scrollArea = new JScrollPane(areaT);
         scrollArea.setPreferredSize(new Dimension(400, 100)); 
         panelArea.add(scrollArea, grid);
@@ -165,62 +214,27 @@ public class ChatPANEL extends JPanel {
         grid.weighty = 0.0;
         grid.fill = GridBagConstraints.HORIZONTAL;
 
-        JTextField txtBuscar = new JTextField("Di algo");
-        txtBuscar.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 17));
-        txtBuscar.setForeground(new Color(0, 0, 0));
-        txtBuscar.setPreferredSize(new Dimension(200, 30));
-        txtBuscar.addMouseListener(new MouseAdapter() {
+        txtMensaje = new JTextField("Di algo");
+        txtMensaje.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 17));
+        txtMensaje.setForeground(new Color(0, 0, 0));
+        txtMensaje.setPreferredSize(new Dimension(200, 30));
+        txtMensaje.addMouseListener(new MouseAdapter() {
             @Override
             public void mousePressed(MouseEvent e) {
-                txtBuscar.setText("");
+                txtMensaje.setText("");
             }
         });
-        panelArea.add(txtBuscar, grid);
+        panelArea.add(txtMensaje, grid);
 
         grid.gridx++;
-        JButton enviar = new JButton("Enviar");
+        bnenviar = new JButton("Enviar");
         
 
-        enviar.addActionListener(e -> {
-            Amigos amigoSeleccionado = resultadosArea.getSelectedValue(); 
-            if (amigoSeleccionado != null) {
-                String mensaje = txtBuscar.getText();
-                if (!mensaje.isBlank()) {
-                    String mensajeCompleto = "" + mensaje;
-                    
-                    File directorioAmigo = amigoSeleccionado.getDirect(); 
-                    File directorioUsuarioActual = actual.getDirect();
-                    
-                    amigoSeleccionado.guardarMensajeCompartido(mensajeCompleto, directorioUsuarioActual);
-                    txtBuscar.setText("");
+        bnenviar.addActionListener(e -> enviarMensaje());
 
-                    ArrayList<String> mensajes = amigoSeleccionado.cargarConversacionCompartida(amigoSeleccionado.getNombre(), actual.getDirect());
-                    areaT.setText(""); 
-                    for (String msg : mensajes) {
-                        if (msg.startsWith(actual.getDirect().getName())) {
-                            areaT.append("Tú: " + msg.substring(actual.getDirect().getName().length() + 2) + "\n\n");
-                        } else {
-                            areaT.append("Amigo: " + msg + "\n\n");
-                        }
-                    }
-                }
-            } else {
-                JOptionPane.showMessageDialog(null, "Selecciona un amigo primero.");
-            }
-        });
+       
 
-       /* new Timer(1000, e -> {
-        Amigos amigoSeleccionado = resultadosArea.getSelectedValue();
-        if (amigoSeleccionado != null) {
-            ArrayList<String> mensajes = amigoSeleccionado.cargarConversacionCompartida(amigoSeleccionado.getNombre(), actual.getDirect());
-            areaT.setText(""); // Limpiar el área de texto
-            for (String msg : mensajes) {
-                areaT.append(msg + "\n");
-            }
-        }
-    }).start();*/
-
-        panelArea.add(enviar, grid);
+        panelArea.add(bnenviar, grid);
 
         return panelArea;
     }
@@ -242,7 +256,7 @@ public class ChatPANEL extends JPanel {
 
         // Campo de búsqueda
         grid.gridy++;
-        JTextField txtBuscar = new JTextField("Búsqueda (cantidad de amigos)");
+        txtBuscar = new JTextField("Búsqueda (cantidad de amigos)");
         txtBuscar.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 17));
         txtBuscar.setForeground(new Color(0, 0, 0));
         txtBuscar.setPreferredSize(new Dimension(200, 30));
@@ -253,22 +267,21 @@ public class ChatPANEL extends JPanel {
             }
         });
 
-        txtBuscar.addKeyListener(new KeyAdapter() {
+        txtBuscar.getDocument().addDocumentListener(new DocumentListener() {
             @Override
-            public void keyPressed(KeyEvent e) {
-                String palabraClave = txtBuscar.getText().trim(); 
-                ArrayList<Usuario> resultados;
-
-                if (!palabraClave.isEmpty()) {
-                    resultados = user.buscarUsuarios(palabraClave);
-
-                } else {
-                    resultados = user.getTodosUsuarios();
-                }
-
-                cargarLista(resultados, actual.getDirect());
+            public void insertUpdate(DocumentEvent e) {
+                buscarUsuarios();
             }
 
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                buscarUsuarios();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                buscarUsuarios();
+            }
         });
 
         amigosPanel.add(txtBuscar, grid);
@@ -279,29 +292,19 @@ public class ChatPANEL extends JPanel {
         botonesPanel.setBackground(new Color(0x536878));
         JLabel buscarLabel = new JLabel("Amigos del perfil         ");
         estiloF(buscarLabel);
-        JButton buscarBoton = new JButton("Iniciar Conversacion");
+        JButton bnSeleccionar = new JButton("Iniciar Conversacion");
         botonesPanel.add(buscarLabel);
-        botonesPanel.add(buscarBoton);
+        botonesPanel.add(bnSeleccionar);
         amigosPanel.add(botonesPanel, grid);
 
         // Área de resultados
         grid.gridy++;
         //JList<String> resultadosArea = new JList<>(modelo); estiloF(resultadosArea);
-        resultadosArea = new JList<>(modelo); 
-        resultadosArea.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);  
-        resultadosArea.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.getNombre());
-            label.setFont(new Font("Arial Rounded MT Bold", Font.PLAIN, 17)); 
-            label.setOpaque(true);
-            if (isSelected) {
-                label.setBackground(new Color(0xB5BAC9));
-                label.setForeground(Color.BLACK);
-            } else {
-                label.setBackground(new Color(0x536878));
-                label.setForeground(Color.WHITE);
-            }
-            return label;
-        });
+        resultados = user.getTodosUsuarios();
+        cargarLista(resultados, actual);
+        resultadosArea = new JList<>(modelo);
+          
+        
         resultadosArea.setForeground(new Color(0, 0, 0));
         
         JScrollPane scrollPane = new JScrollPane(resultadosArea);
@@ -309,71 +312,118 @@ public class ChatPANEL extends JPanel {
         scrollPane.getViewport().setBackground(new Color(0x536878));
         scrollPane.setBackground(new Color(0x536878));
         amigosPanel.add(scrollPane, grid);
+        
 
-        buscarBoton.addActionListener(e -> {
-            Amigos amigoSeleccionado = resultadosArea.getSelectedValue(); 
-            if (amigoSeleccionado != null) {
-                ArrayList<String> mensajes = amigoSeleccionado.cargarConversacionCompartida(amigoSeleccionado.getNombre(), actual.getDirect());
-                temp = user.obtenerUsuario(amigoSeleccionado.getNombre());
-                nombre = temp.getUsername().toUpperCase();
-                foto = temp.getFoto();
+       
+        bnSeleccionar.addActionListener(e -> {
+            
+        
+         
+           
+                int seleccionado = resultadosArea.getSelectedIndex();
+
+                 if (seleccionado != -1 && modelo.size() > 0)  {
+                    Usuario usuarioSeleccionado = resultados.get(seleccionado);
+
+                JOptionPane.showMessageDialog(null, "Seleccionado " + usuarioSeleccionado.getUsername());
+                 /*Servidor.instancia.addObserver(this);
+                 
+                  
+                  cliente = new Cliente(6000);*/
+                 
+                 destino =usuarioSeleccionado;
+                 
+                String nombreArchivo = GestorConversaciones.obtenerArchivoConversacion(actual.getUsername(), destino.getUsername());
+                gestor = new GestorConversaciones(nombreArchivo);
+                 
+                 //String nombreArchivo = "Chat/" + actual.getUsername() + "_" + destino.getUsername() + ".bin";
+                 
+                 
+                areaT.setText("");
+                    List<Mensaje> mensajes = gestor.cargarConversacion();
+                    for (Mensaje mensaje : mensajes) {
+                        areaT.append(mensaje + "\n");
+                    }
+                 
+                  iniciarServer();
+                  nombre = actual.getUsername();
                 
-                ImageIcon imagenOriginal = new ImageIcon(foto);
-                Image imagenRedimensionada = imagenOriginal.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
-                ImageIcon imagen = new ImageIcon(imagenRedimensionada);
-                labelImagen.setIcon(imagen);  // Actualiza la imagen
-
-                // Actualizar el JTextArea con el nombre y estado
-                info.setText("\n  -> : " + nombre + "\n" + "  Estado: " + actual.getFecha() + "\n");
-
+                ClienteView cv = new ClienteView(usuarioSeleccionado.getUsername());
+                Servidor.instancia.addObserver(cv);
+                cv.setVisible(true);
                 
-                areaT.setText(""); 
-                for (String mensaje : mensajes) {
-                    areaT.append(mensaje + "\n\n");
+                OtroChat otroChat = OtroChat.getInstance(actual, destino);
+                otroChat.setUsuarios(actual, destino);
+               
+                 
+                   
+                } else {
+
+                    JOptionPane.showMessageDialog(null, "No se econtro ningun usuario '" + txtBuscar.getText().trim() + "'");
                 }
-            } else {
-                JOptionPane.showMessageDialog(null, "Selecciona un amigo primero.");
-            }
-        });
 
-        resultadosArea.setCellRenderer((list, value, index, isSelected, cellHasFocus) -> {
-            JLabel label = new JLabel(value.getNombre());
-            if (isSelected) {
-                label.setBackground(new Color(0xB5BAC9));
-                label.setOpaque(true);
-            }
-            return label;
+            
         });
+            
+
+       
 
         return amigosPanel;
     }
 
-    /*private void cargarLista(ArrayList<Usuario> usuarios, Usuario actual) {
+
+    
+    private void cargarLista(ArrayList<Usuario> usuarios, Usuario actual) {
         modelo.clear();
 
         for (Usuario usuario : usuarios) {
-            if (usuario != null) {
-                String estado;
-                if (usuario.equals(actual)) {
-                     estado = "  [ Tu ]";
-                } else if (actual.isAmigo(usuario)) {
-                    estado = "  [ Amigo ]";
-                } else {
-                    estado = "  [ No amigo ]";
-                }
-                modelo.addElement("  @ " + usuario.getUsername() + " " + estado);
+            if (!usuario.equals(actual)) {
+                String estado = actual.isAmigo(usuario) ? "  [ Amigo ]" : "  [ No amigo ]";
+                modelo.addElement("  @ " + usuario.getUsername() + estado);
             }
         }
-          
-        
-
-    }*/
-    private void cargarLista(ArrayList<Usuario> usuarios, File directorioUsuarioActual) {
-        modelo.clear();
-        for (Usuario usuario : usuarios) {
-            Amigos amigo = new Amigos(usuario.getUsername(), directorioUsuarioActual);
-            modelo.addElement(amigo);
+        if (modelo.isEmpty()) {
+            modelo.addElement("No se encontraron usuarios.");
         }
+
+    }
+    
+    private void iniciarServer() {
+          if (isOn) {
+            JOptionPane.showMessageDialog(null, "El servidor ya está encendido.", "Servidor Activo", JOptionPane.INFORMATION_MESSAGE);
+
+            // Si el servidor ya está activo, traer al frente la ventana del servidor
+            OtroChat.getInstance(actual, destino).toFront();
+            OtroChat.getInstance(actual, destino).repaint();
+            return;
+        }
+
+        Servidor.getInstance(6000);
+        Thread t = new Thread(Servidor.instancia);
+        t.start();
+
+        OtroChat sv = OtroChat.getInstance(actual, destino);
+        //sv.setVisible(true);
+
+        Servidor.instancia.addObserver(sv);
+        Servidor.instancia.setVistaServidor(sv);
+
+        isOn = true;
+        JOptionPane.showMessageDialog(null, "Servidor iniciado correctamente.", "Servidor", JOptionPane.INFORMATION_MESSAGE);
+}
+    
+    public void enviarMensaje(){
+        
+            cliente2 = new Cliente(6000);
+            mensaje = txtMensaje.getText();
+            
+            Mensaje mensajeObj = new Mensaje(actual.getUsername(), destino.getUsername(), mensaje);
+           // gestor.guardarMensaje(mensajeObj);
+
+            
+            cliente2.enviarMensaje(nombre + " --> " + mensaje + "\n");
+            //areaT.append(mensajeObj + "\n");
+            txtMensaje.setText("");
     }
 
     public void estiloF(JComponent com) {
@@ -381,4 +431,28 @@ public class ChatPANEL extends JPanel {
         com.setForeground(new Color(255, 255, 255));
     }
 
+    @Override
+   public void update(Observable o, Object arg) {
+        areaT.append((String) arg);
+    }
+   
+   public void notificarConexion(String mensaje) {
+        SwingUtilities.invokeLater(() -> {
+            areaT.append(mensaje + "\n");
+        });
+    }
+   
+   private void buscarUsuarios() {
+    String palabraClave = txtBuscar.getText().trim();
+    if (palabraClave.isEmpty()) {
+        resultados = user.getTodosUsuarios();
+    } else {
+        resultados = user.buscarUsuarios(palabraClave);
+    }
+    cargarLista(resultados, actual);
 }
+   
+    
+   
+}
+  

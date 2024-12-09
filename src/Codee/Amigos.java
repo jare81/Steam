@@ -61,32 +61,6 @@ public class Amigos {
             System.out.println("Error al guardar mensaje en conversación compartida: " + e.getMessage());
         }
         
-        
-        
-        /*String nombreArchivo = generarNombreArchivo(directorioUsuarioActual.getName(), nombre);
-
-    // Archivo compartido en el directorio del emisor
-    File archivoCompartidoEmisor = new File(new File(directorioUsuarioActual, "chats"), nombreArchivo);
-
-    // Archivo compartido en el directorio del receptor
-    File archivoCompartidoReceptor = new File(new File(directorioUsuarioAmigo, "chats"), nombreArchivo);
-
-    // Mensaje completo con el nombre del emisor
-    String mensajeCompleto = directorioUsuarioActual.getName() + ": " + mensaje;
-
-    // Guardar mensaje en el archivo del emisor
-    try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(archivoCompartidoEmisor, true))) {
-        dos.writeUTF(mensajeCompleto);
-    } catch (IOException e) {
-        System.out.println("Error al guardar mensaje en conversación compartida del emisor: " + e.getMessage());
-    }
-
-    // Guardar mensaje en el archivo del receptor
-    try (DataOutputStream dos = new DataOutputStream(new FileOutputStream(archivoCompartidoReceptor, true))) {
-        dos.writeUTF(mensajeCompleto);
-    } catch (IOException e) {
-        System.out.println("Error al guardar mensaje en conversación compartida del receptor: " + e.getMessage());
-    }*/
     }
 
     public ArrayList<String> cargarConversacionCompartida(String nombreAmigo, File directorioUsuarioActual) {
@@ -107,27 +81,7 @@ public class Amigos {
         return mensajes;
         
         
-        /*File carpetaChatsUsuario = new File(directorioUsuarioActual, "chats");
-        if (!carpetaChatsUsuario.exists()) {
-            return new ArrayList<>();
-        }
-
-        String nombreArchivo = generarNombreArchivo(directorioUsuarioActual.getName(), nombreAmigo);
-        File archivoCompartido = new File(carpetaChatsUsuario, nombreArchivo);
-
-        ArrayList<String> mensajes = new ArrayList<>();
-        if (!archivoCompartido.exists()) {
-            return mensajes;
-        }
-
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(archivoCompartido))) {
-            while (dis.available() > 0) {
-                mensajes.add(dis.readUTF());
-            }
-        } catch (IOException e) {
-            System.out.println("Error al cargar conversación binaria compartida: " + e.getMessage());
-        }
-        return mensajes;*/
+      
 
     }
 
@@ -139,15 +93,3 @@ public class Amigos {
 
 }
 
-/*public ArrayList<String> cargarConversacion() {
-        ArrayList<String> mensajes = new ArrayList<>();
-        try (DataInputStream dis = new DataInputStream(new FileInputStream(archivoConversacion))) {
-            while (dis.available() > 0) {
-                mensajes.add(dis.readUTF());
-            }
-        } catch (IOException e) {
-            System.out.println("Error al cargar conversación binaria: " + e.getMessage());
-        }
-        return mensajes;
-    }
-}*/

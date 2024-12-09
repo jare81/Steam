@@ -192,7 +192,7 @@ public class Usuario {
                 System.out.println("Error al cargar la lista de amigos: " + e.getMessage());
             }
         } else {
-            System.out.println("No se encontró archivo binario de amigos.");
+            //System.out.println("No se encontró archivo binario de amigos.");
         }
     }
 

@@ -14,12 +14,13 @@ public class Musica {
     private String portada;
     private String ruta;
     
-    public Musica(String titulo, String artista, String album, String ruta, String portada){
+    public Musica(String titulo, String artista, String album, String duracion, String ruta, String portada){
         this.titulo = titulo;
         this.artista=artista;
         this.album=album;
-        this.portada=portada;
+        this.duracion=duracion;
         this.ruta=ruta;
+        this.portada=portada;
         
     }
      
@@ -35,6 +36,9 @@ public class Musica {
         return album;
     }
     
+    public String getDuracion(){
+        return duracion;
+    }
     
     public String getRuta(){
         return ruta;
@@ -46,7 +50,7 @@ public class Musica {
    
      @Override
     public String toString() {
-        return "Título: " + titulo + ", Artista: " + artista + ", Álbum: " + album + ", Ruta: " + ruta;
+        return "Titulo: " + titulo + ", Artista: " + artista + ", album: " + album + ", Ruta: " + ruta;
     }
 
     

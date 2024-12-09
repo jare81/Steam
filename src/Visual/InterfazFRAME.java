@@ -6,6 +6,7 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.GraphicsEnvironment;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -18,6 +19,7 @@ import javax.swing.JButton;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.SwingConstants;
 
 
 public class InterfazFRAME extends JFrame {
@@ -36,7 +38,7 @@ public class InterfazFRAME extends JFrame {
         this.setLocationRelativeTo(null);
 
         setResizable(false);
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        //setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setExtendedState(JFrame.NORMAL);
         setBounds(GraphicsEnvironment.getLocalGraphicsEnvironment().getMaximumWindowBounds());
 
@@ -50,10 +52,11 @@ public class InterfazFRAME extends JFrame {
         add(contenido, BorderLayout.CENTER);
         
         SpotifyPANEL spotify = new SpotifyPANEL(user);
-        SteamPANEL steam = new SteamPANEL();
+        
+        SteamPANEL steam = new SteamPANEL(user);
         PerfilPANEL perfil = new PerfilPANEL(user);
         ChatPANEL chat = new ChatPANEL(user);
-        BibliotecaPANEL biblio =  new BibliotecaPANEL();
+        BibliotecaPANEL biblio =  new BibliotecaPANEL(user);
         
         contenido.add(spotify, "Spotify");
         contenido.add(steam, "Steam");
@@ -107,6 +110,18 @@ public class InterfazFRAME extends JFrame {
         cerrarB.setPreferredSize(size);
         cerrarB.setContentAreaFilled(false); 
         
+        JLabel adminLabel = new JLabel("MODO ADMINISTRADOR");
+        adminLabel.setForeground(Color.RED);
+        adminLabel.setFont(new Font("Arial", Font.BOLD, 14)); 
+        adminLabel.setHorizontalAlignment(SwingConstants.CENTER); 
+        adminLabel.setVisible(false);
+
+        if (user.getUsuarioActual().getUsername().equalsIgnoreCase("admin")) {
+            adminLabel.setVisible(true);
+        }
+
+       
+        
         
         grid.gridx = 0;
         grid.gridy = 0;
@@ -131,15 +146,28 @@ public class InterfazFRAME extends JFrame {
         menu.add(cerrarB, grid);
         
         
+        grid.gridy = 7; 
+        menu.add(adminLabel, grid);
+        
+        
 
         add(menu, BorderLayout.WEST);
         
         spotiB.addActionListener(e -> cardLayout.show(contenido, "Spotify"));
-        steamB.addActionListener(e -> cardLayout.show(contenido, "Steam"));
-        chatB.addActionListener(e -> cardLayout.show(contenido, "Chat"));
-        perfilB.addActionListener(e -> cardLayout.show(contenido, "Perfil"));
-        biblioB.addActionListener(e -> cardLayout.show(contenido, "Biblioteca"));
         
+        steamB.addActionListener(e -> {
+            // Actualiza el contenido del panel Steam
+            cardLayout.show(contenido, "Steam");
+        });
+        
+        chatB.addActionListener(e -> cardLayout.show(contenido, "Chat"));
+        
+        perfilB.addActionListener(e -> cardLayout.show(contenido, "Perfil"));
+        
+        biblioB.addActionListener(e -> {
+            biblio.actualizarContenido(); // Actualiza el contenido del panel Biblioteca
+            cardLayout.show(contenido, "Biblioteca");
+        });
         
          cerrarB.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -152,6 +180,8 @@ public class InterfazFRAME extends JFrame {
 
 
     }
+    
+    
 
     
 

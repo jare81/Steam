@@ -10,6 +10,7 @@ import Codee.Reproductor;
 import Codee.Usuario;
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -19,6 +20,11 @@ import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -32,6 +38,7 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.SwingConstants;
 
 /**
  *
@@ -54,6 +61,7 @@ public class SpotifyPANEL extends JPanel {
     private String album = "";
     private String ruta = "";
     private String imagen = "";
+    private String duracion="";
     private int indice = 0;
 
     private Reproductor rep;
@@ -66,7 +74,9 @@ public class SpotifyPANEL extends JPanel {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY);
         rep = new Reproductor();
+       
         this.user=user;
+        actual =user.getUsuarioActual();
         
 
         GridBagConstraints grid = new GridBagConstraints();
@@ -80,24 +90,45 @@ public class SpotifyPANEL extends JPanel {
         gridT = new GridBagConstraints();
         gridT.insets = new Insets(10, 10, 10, 10);
 
-        JPanel buscarP = new JPanel();
+        JPanel buscarP = new JPanel(new GridBagLayout());
         buscarP.setBackground(Color.LIGHT_GRAY);
         GridBagConstraints gridP = new GridBagConstraints();
         gridT.gridy = 1;
         gridT.gridx = 0;
+        
+        ImageIcon iconS = new ImageIcon("src/imags/spotify.png");
+        Image imgS = iconS.getImage().getScaledInstance(80, 80, Image.SCALE_SMOOTH);
+        ImageIcon resizedIconS = new ImageIcon(imgS);
+        JLabel imageLabelS = new JLabel(resizedIconS);
+        gridP.gridx = 0; 
+        gridP.gridy = 0;
+        gridP.anchor = GridBagConstraints.WEST; 
+        gridP.insets = new Insets(0, 0, 0, 50); 
+        buscarP.add(imageLabelS, gridP);
 
         JTextField buscar = new JTextField("Descubre algo nuevo...");
         buscar.setFont(new Font("Arial", Font.BOLD, 20));
         buscar.setPreferredSize(new Dimension(600, 35));
+        gridP.gridx = 1;
+        gridP.gridy = 0;
+        gridP.weightx = 1.0; 
+        gridP.fill = GridBagConstraints.HORIZONTAL;
+        gridP.insets = new Insets(0, 0, 0, 5);
+        buscarP.add(buscar, gridP);
 
         ImageIcon icon = new ImageIcon("src/imags/lupa32.png");
         Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
         ImageIcon resizedIcon = new ImageIcon(img);
         JLabel imageLabel = new JLabel(resizedIcon);
+        gridP.gridx = 2;
+        gridP.gridy = 0;
+        gridP.anchor = GridBagConstraints.CENTER; 
+        gridP.insets = new Insets(0, 0, 0, 0); 
+        buscarP.add(imageLabel, gridP);
 
-        buscarP.add(imageLabel);
-        buscarP.add(buscar);
-
+        
+        
+        
         timeline.add(buscarP, gridT);
 
         JPanel bot = new JPanel(new GridBagLayout());
@@ -114,23 +145,23 @@ public class SpotifyPANEL extends JPanel {
         gridB.gridx = 0;
         bot.add(biblioteca, gridB);
 
-        JButton agregar = new JButton(" Agregar una cancion ");
-        agregar.setPreferredSize(size);
-        gridB.gridy = 0;
-        gridB.gridx = 1;
-        bot.add(agregar, gridB);
+        if (actual.getUsername().equalsIgnoreCase("admin")){
+            JButton agregar = new JButton(" Agregar cancion ");
+            agregar.setPreferredSize(size);
+            gridB.gridy = 0;
+            gridB.gridx = 1;
+            bot.add(agregar, gridB);
+            
+            agregar.addActionListener(ev -> {new addMusicaFRAME().setVisible(true);});
 
-        JButton ver = new JButton(" Informacion ");
-        ver.setPreferredSize(size);
-        gridB.gridy = 0;
-        gridB.gridx = 2;
-        bot.add(ver, gridB);
-
-        JButton s = new JButton(" Agregar boton");
-        s.setPreferredSize(size);
-        gridB.gridy = 0;
-        gridB.gridx = 3;
-        bot.add(s, gridB);
+            JButton eliminar = new JButton(" Eliminar cancion ");
+            eliminar.setPreferredSize(size);
+            gridB.gridy = 0;
+            gridB.gridx = 2;
+            bot.add(eliminar, gridB);
+            
+            eliminar.addActionListener(ev -> {});
+        }
 
         timeline.add(bot, gridT);
 
@@ -192,29 +223,50 @@ public class SpotifyPANEL extends JPanel {
         int col = componentCount % d;
 
         for (int i = 0; i < rep.getArray().size(); i++) {
-            String cancion = rep.getArray().get(i).getTitulo(); // Obtener la canción del ArrayList
-            JButton newButton = new JButton(cancion);
-            newButton.setPreferredSize(new Dimension(100, 60)); // Tamaño preferido
+            String cancion = rep.getArray().get(i).getTitulo();
+            String art = rep.getArray().get(i).getArtista();
+                JButton newButton = new JButton();
+                newButton.setPreferredSize(new Dimension(100, 60));
 
-            // Agregar el índice y la canción al botón
+                JPanel buttonPanel = new JPanel();
+                buttonPanel.setLayout(new BoxLayout(buttonPanel, BoxLayout.Y_AXIS));
+                buttonPanel.setBackground(new Color(0, 0, 0, 0));
+
+                JLabel cancionLabel = new JLabel(cancion);
+                cancionLabel.setHorizontalAlignment(SwingConstants.LEFT);
+                cancionLabel.setFont(new Font("Arial Bold", Font.PLAIN, 17));
+                cancionLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  
+                cancionLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); 
+
+                JLabel artistLabel = new JLabel(art);
+                artistLabel.setHorizontalAlignment(SwingConstants.LEFT);
+                artistLabel.setFont(new Font("Arial", Font.PLAIN, 14)); 
+                artistLabel.setAlignmentX(Component.LEFT_ALIGNMENT);  
+                artistLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0)); 
+
+                buttonPanel.add(cancionLabel); 
+                buttonPanel.add(artistLabel); 
+
+                newButton.setLayout(new BorderLayout());
+                newButton.add(buttonPanel, BorderLayout.CENTER);
+                
             int index = i;
             newButton.addActionListener(ev -> {
-                System.out.println("Índice: " + index + ", Canción: " + cancion);
+                System.out.println("indice: " + index + ", Cancion: " + cancion);
                 titulo = rep.getArray().get(index).getTitulo();
                 album = rep.getArray().get(index).getAlbum();
                 artista = rep.getArray().get(index).getArtista();
+                duracion = rep.getArray().get(index).getDuracion();
                 ruta = rep.getArray().get(index).getRuta();
                 imagen = rep.getArray().get(index).getPortada();
                 indice = index;
                 mostrar();
             });
 
-            // Configurar las restricciones para el nuevo botón
             constraints.gridx = col;
             constraints.gridy = row;
             panel.add(newButton, constraints);
 
-            // Actualizar posición
             componentCount++;
             row = componentCount / d;
             col = componentCount % d;
@@ -298,7 +350,7 @@ public class SpotifyPANEL extends JPanel {
         descripcion.add(new JLabel("Duracion: "), gridD);
 
         gridD.gridx = 1;
-        descripcion.add(new JLabel("3:00"), gridD); // Reemplaza con duración real si está disponible
+        descripcion.add(new JLabel(duracion), gridD); 
 
         gridD.gridy = 4;
         gridD.gridx = 0;
@@ -368,7 +420,7 @@ public class SpotifyPANEL extends JPanel {
         nofavIcon = new ImageIcon(new ImageIcon("src/imags/heart32.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
         favIcon = new ImageIcon(new ImageIcon("src/imags/heartr32.png").getImage().getScaledInstance(20, 20, Image.SCALE_SMOOTH));
 
-         JButton fav = new JButton(isFav ? favIcon : nofavIcon);
+        JButton fav = new JButton(isFav ? favIcon : nofavIcon);
         gridB.gridy = 0;
         gridB.gridx = 4;
         song.add(fav, gridS);
@@ -380,12 +432,12 @@ public class SpotifyPANEL extends JPanel {
                 
               
             if (!isFav) {
-                fav.setIcon(favIcon); // Actualizar icono si se agrega a favoritos
-                user.agregarCancion(new File(ruta)); // Agregar la canción a la biblioteca
+                fav.setIcon(favIcon); 
+                user.agregarCancion(new File(ruta)); 
                 isFav = true;
             } else {
-                fav.setIcon(nofavIcon); // Actualizar icono si se elimina de favoritos
-                user.eliminarCancion(titulo); // Eliminar la canción de la biblioteca
+                fav.setIcon(nofavIcon); 
+                user.eliminarCancion(titulo); 
                 isFav = false;
             }
         
@@ -395,6 +447,8 @@ public class SpotifyPANEL extends JPanel {
 
         informacion.add(song, gridD);
     }
+    
+   
     
     public boolean getPlaying(){
         return isPlaying;
@@ -408,4 +462,6 @@ public class SpotifyPANEL extends JPanel {
     public void actualizarContenido(String info) {
         // Método para actualizar contenido dinámico si es necesario
     }
+    
+    
 }

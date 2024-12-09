@@ -11,19 +11,14 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
-import javax.swing.JOptionPane;
 
 import org.jaudiotagger.audio.AudioFile;
 import org.jaudiotagger.audio.AudioFileIO;
-import org.jaudiotagger.audio.exceptions.CannotReadException;
-import org.jaudiotagger.audio.exceptions.InvalidAudioFrameException;
-import org.jaudiotagger.audio.exceptions.ReadOnlyFileException;
 import org.jaudiotagger.tag.Tag;
 import org.jaudiotagger.tag.FieldKey;
-import org.jaudiotagger.tag.TagException;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 
@@ -90,7 +85,7 @@ public class Reproductor {
 
     public void reproducir(int indice) {
         if (indice < 0 || indice >= songs.size()) {
-            System.out.println("Índice fuera de rango.");
+            System.out.println("Indice fuera de rango.");
             return;
         }
 
@@ -101,7 +96,7 @@ public class Reproductor {
 
     public void mostrarInformacion(int indice) {
         if (indice < 0 || indice >= songs.size()) {
-            System.out.println("Índice fuera de rango.");
+            System.out.println("indice fuera de rango.");
             return;
         }
 
@@ -150,7 +145,51 @@ public class Reproductor {
         return estaSonando;
     }
 
-    public void editar(String ruta, String titulo, String artista, String album, String rutaPortada) {
+    public void agregarCancion(String titulo, String artista, String album, String rutaOriginal, String portadaOriginal) {
+        try {
+            File archivoMP3 = new File(rutaOriginal);
+            File archivoPortada = new File(portadaOriginal);
+
+            // Verificar que el archivo MP3 exista y sea válido
+            if (!archivoMP3.exists() || !archivoMP3.getName().endsWith(".mp3")) {
+                System.out.println("El archivo MP3 no es válido.");
+                return;
+            }
+
+            //editar(titulo, artista, album, rutaOriginal, portadaOriginal);
+            // Verificar que el archivo de portada exista y sea válido
+            if (!archivoPortada.exists() || (!archivoPortada.getName().endsWith(".png") && !archivoPortada.getName().endsWith(".jpg"))) {
+                System.out.println("El archivo de portada no es válido.");
+                return;
+            }
+
+            AudioFile audioFile = AudioFileIO.read(archivoMP3);
+            int duracionSegundos = audioFile.getAudioHeader().getTrackLength();
+            int minutos = duracionSegundos / 60;
+            int segundos = duracionSegundos % 60;
+            String duracion = String.format("%02d:%02d", minutos, segundos);
+
+            File destinoMP3 = new File(songsDir, archivoMP3.getName());
+
+            File destinoPortada = new File(songsDir, archivoPortada.getName());
+            editar(titulo, artista, album, rutaOriginal, portadaOriginal);
+
+            Files.copy(archivoMP3.toPath(), destinoMP3.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            Files.copy(archivoPortada.toPath(), destinoPortada.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            songs.add(new Musica(titulo, artista, album, duracion, destinoMP3.getPath(), destinoPortada.getPath()));
+            System.out.println("Canción agregada exitosamente:");
+            System.out.println("Título: " + titulo);
+            System.out.println("Artista: " + artista);
+            System.out.println("Álbum: " + album);
+            System.out.println("Duración: " + duracion);
+
+        } catch (Exception e) {
+            System.out.println("Error al agregar la canción: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
+
+    public void editar(String titulo, String artista, String album, String ruta, String rutaPortada) {
         try {
             File archivoMP3 = new File(ruta);
 
@@ -174,96 +213,76 @@ public class Reproductor {
         }
     }
 
-    public void leer(String ruta) {
+    public void cargaInicial() {
         try {
-            File archivoMP3 = new File(ruta);
+            File[] archivos = songsDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
+            if (archivos == null || archivos.length == 0) {
+                System.out.println("No se encontraron archivos MP3 en la carpeta.");
+                return;
+            }
 
-            AudioFile audioFile = AudioFileIO.read(archivoMP3);
+            for (File archivoMP3 : archivos) {
+                try {
+                    // Leer el archivo MP3 y obtener metadatos
+                    AudioFile audioFile = AudioFileIO.read(archivoMP3);
+                    Tag tag = audioFile.getTag();
 
-            // Obtener las etiquetas
-            Tag tag = audioFile.getTag();
+                    String titulo = tag != null ? tag.getFirst(FieldKey.TITLE) : "Desconocido";
+                    String artista = tag != null ? tag.getFirst(FieldKey.ARTIST) : "Desconocido";
+                    String album = tag != null ? tag.getFirst(FieldKey.ALBUM) : "Desconocido";
+                    int duracionSegundos = audioFile.getAudioHeader().getTrackLength();
+                    int minutos = duracionSegundos / 60;
+                    int segundos = duracionSegundos % 60;
+                    String duracion = String.format("%02d:%02d", minutos, segundos);
 
-            String titulo = tag.getFirst(FieldKey.TITLE);
-            String artista = tag.getFirst(FieldKey.ARTIST);
-            String album = tag.getFirst(FieldKey.ALBUM);
-            String duracion = String.valueOf(audioFile.getAudioHeader().getTrackLength());
-            int dur = Integer.parseInt(duracion);
-            int min = dur / 60;
-            int seg = dur % 60;
+                    // Buscar una portada asociada (si existe un archivo de imagen con el mismo nombre que el MP3)
+                    String rutaPortada = "Sin portada";
+                    if (tag != null && tag.getFirstArtwork() != null) {
+                        Artwork artwork = tag.getFirstArtwork();
+                        byte[] imagenBytes = artwork.getBinaryData();
 
-            System.out.println("Título: " + (titulo.isEmpty() ? "Desconocido" : titulo));
-            System.out.println("Artista: " + (artista.isEmpty() ? "Desconocido" : artista));
-            System.out.println("Álbum: " + (album.isEmpty() ? "Desconocido" : album));
-            System.out.println("Duración: " + min + ":" + seg);
-            System.out.println("");
+                        // Guardar la portada en la carpeta de canciones
+                        File archivoPortada = new File(songsDir, archivoMP3.getName() + "_cover.jpg");
+                        try (FileOutputStream fos = new FileOutputStream(archivoPortada)) {
+                            fos.write(imagenBytes);
+                            rutaPortada = archivoPortada.getAbsolutePath();
+                        }
+                    }
 
+                    // Agregar canción al arreglo
+                    songs.add(new Musica(
+                            titulo.isEmpty() ? "Desconocido" : titulo,
+                            artista.isEmpty() ? "Desconocido" : artista,
+                            album.isEmpty() ? "Desconocido" : album,
+                            duracion,
+                            archivoMP3.getPath(),
+                            rutaPortada
+                    ));
+                } catch (Exception e) {
+                    System.err.println("Error al cargar el archivo " + archivoMP3.getName() + ": " + e.getMessage());
+                }
+            }
+
+            System.out.println("Canciones cargadas exitosamente: " + songs.size());
         } catch (Exception e) {
-            System.out.println("Error al leer el archivo MP3: " + e.getMessage());
-        }
-
-    }
-
-    public void listarCancionesUsuario(String username) {
-        File carpetaUsuario = new File("src/users/" + username + "/musica");
-        if (!carpetaUsuario.exists()) {
-            JOptionPane.showMessageDialog(null, "La carpeta del usuario no existe o no contiene canciones.");
-            return;
-        }
-
-        File[] archivos = carpetaUsuario.listFiles((dir, name) -> name.endsWith(".mp3"));
-        if (archivos == null || archivos.length == 0) {
-            System.out.println("No hay canciones en la carpeta del usuario.");
-            return;
-        }
-
-        System.out.println("Canciones disponibles para " + username + ":");
-        for (int i = 0; i < archivos.length; i++) {
-            System.out.println((i + 1) + ". " + archivos[i].getName());
-        }
-    }
-
-    public void reproducirCancionUsuario(String username, int indice) {
-        File carpetaUsuario = new File("src/users/" + username + "/musica");
-        if (!carpetaUsuario.exists()) {
-            System.out.println("La carpeta del usuario no existe o no contiene canciones.");
-            return;
-        }
-
-        File[] archivos = carpetaUsuario.listFiles((dir, name) -> name.endsWith(".mp3"));
-        if (archivos == null || archivos.length == 0) {
-            System.out.println("No hay canciones en la carpeta del usuario.");
-            return;
-        }
-
-        if (indice < 0 || indice >= archivos.length) {
-            System.out.println("Índice fuera de rango.");
-            return;
+            System.err.println("Error durante la carga inicial: " + e.getMessage());
+            e.printStackTrace();
         }
         
-        String rutaArchivo = archivos[indice].getAbsolutePath();
-        System.out.println("Reproduciendo: " + archivos[indice].getName());
-        reproducir(rutaArchivo);
-}
-    
-    
-    
-    public void cargaInicial() {
-        songs.add(new Musica("Run", "One Republic", "Human", "src/Canciones/Run.mp3", "src/Canciones/Run.png"));
-        songs.add(new Musica("Mente en Blanco", "K4OS", "Single", "src/Canciones/MENTE EN BLANCO.mp3", "src/Canciones/MENTE EN BLANCO.png"));
-        songs.add(new Musica("Can't Remember to Forget You", "Shakira", "Single", "src/Canciones/Can't Remember to Forget You.mp3", "src/Canciones/Can't Remember to Forget You.png"));
-        songs.add(new Musica("APT", "Rose & Bruno Mars", "Single", "src/Canciones/APT.mp3", "src/Canciones/APT.png"));
-        songs.add(new Musica("Back To Me", "The Rose", "Alive", "src/Canciones/Back To Me.mp3", "src/Canciones/Back To Me.png"));
-        songs.add(new Musica("Bad Liar", "One Republic", "Origins", "src/Canciones/Bad Liar.mp3", "src/Canciones/Bad Liar.png"));
-        songs.add(new Musica("Born For This", "The Score", "Pressure", "src/Canciones/Born For This.mp3", "src/Canciones/Born For This.png"));
-        songs.add(new Musica("Pink Venom", "Black Pink", "Born Pink", "src/Canciones/Pink Venom.mp3", "src/Canciones/Pink Venom.png"));
-        songs.add(new Musica("Save Your Tears", "The Weeknd", "After Hours", "src/Canciones/Save Your Tears.mp3", "src/Canciones/Save Your Tears.png"));
-        songs.add(new Musica("True Colors", "Anna Kendrick y Justin Timberlake", "Single", "src/Canciones/True Colors.mp3", "src/Canciones/True Colors.png"));
     }
-
-    public static void main(String[] args) throws CannotReadException, IOException, TagException, ReadOnlyFileException, InvalidAudioFrameException {
-        Reproductor reproductor = new Reproductor();
-
-        reproductor.reproducir(1);
-
-    }
+    
 }
+
+ /* public void cargaInicial() {
+        agregarCancion("Run", "One Republic", "Human", "src/Canciones/Run.mp3", "src/Canciones/Run.png");
+        agregarCancion("Mente en Blanco", "K4OS", "Single", "src/Canciones/MENTE EN BLANCO.mp3", "src/Canciones/MENTE EN BLANCO.png");
+        agregarCancion("Can't Remember to Forget You", "Shakira", "Single", "src/Canciones/Can't Remember to Forget You.mp3", "src/Canciones/Can't Remember to Forget You.png");
+        agregarCancion("APT", "Rose & Bruno Mars", "Single", "src/Canciones/APT.mp3", "src/Canciones/APT.png");
+        agregarCancion("Back To Me", "The Rose", "Alive", "src/Canciones/Back To Me.mp3", "src/Canciones/Back To Me.png");
+        agregarCancion("Bad Liar", "One Republic", "Origins", "src/Canciones/Bad Liar.mp3", "src/Canciones/Bad Liar.png");
+        agregarCancion("Born For This", "The Score", "Pressure", "src/Canciones/Born For This.mp3", "src/Canciones/Born For This.png");
+        agregarCancion("Pink Venom", "Black Pink", "Born Pink", "src/Canciones/Pink Venom.mp3", "src/Canciones/Pink Venom.png");
+        agregarCancion("Save Your Tears", "The Weeknd", "After Hours", "src/Canciones/Save Your Tears.mp3", "src/Canciones/Save Your Tears.png");
+        agregarCancion("True Colors", "Anna Kendrick y Justin Timberlake", "Single", "src/Canciones/True Colors.mp3", "src/Canciones/True Colors.png");
+    }*/
+    
