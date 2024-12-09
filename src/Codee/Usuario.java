@@ -18,7 +18,7 @@ import javax.swing.JOptionPane;
  *
  * @author Dell
  */
-public class Usuario {
+public final class Usuario {
 
     private String username;
     private String pass;
@@ -39,7 +39,7 @@ public class Usuario {
 
     private File song;
 
-    private Administrador admin;
+    private General admin;
 
     public Usuario(String username, String pass, String fecha, boolean activo, String descripcion, String foto) {
 
@@ -69,11 +69,7 @@ public class Usuario {
             directorioP.mkdirs();
         }
 
-        carpetaChats = new File(directorioP, "chats");
-        if (!carpetaChats.exists()) {
-            carpetaChats.mkdirs();
-        }
-
+        
         carpetaJuegos = new File(directorioP, "juegos");
         if (!carpetaJuegos.exists()) {
             carpetaJuegos.mkdirs();

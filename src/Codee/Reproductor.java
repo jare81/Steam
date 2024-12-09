@@ -22,7 +22,7 @@ import org.jaudiotagger.tag.FieldKey;
 import org.jaudiotagger.tag.images.Artwork;
 import org.jaudiotagger.tag.images.ArtworkFactory;
 
-public class Reproductor {
+public class Reproductor implements Gestionable {
 
     private Player player;
     private FileInputStream fileInputStream;
@@ -38,7 +38,7 @@ public class Reproductor {
             songsDir.mkdir();
         }
         songs = new ArrayList<>();
-        cargaInicial();
+        cargar();
     }
 
     public ArrayList<Musica> getArray() {
@@ -106,7 +106,7 @@ public class Reproductor {
         System.out.println("Artista: " + cancion.getArtista());
         System.out.println("Álbum: " + cancion.getAlbum());
         System.out.println("Ruta: " + cancion.getRuta());
-        System.out.println("Portada: " + cancion.getPortada());
+        System.out.println("Portada: " + cancion.getFoto());
     }
 
     private void cerrarRecursos() {
@@ -150,14 +150,12 @@ public class Reproductor {
             File archivoMP3 = new File(rutaOriginal);
             File archivoPortada = new File(portadaOriginal);
 
-            // Verificar que el archivo MP3 exista y sea válido
             if (!archivoMP3.exists() || !archivoMP3.getName().endsWith(".mp3")) {
                 System.out.println("El archivo MP3 no es válido.");
                 return;
             }
 
             //editar(titulo, artista, album, rutaOriginal, portadaOriginal);
-            // Verificar que el archivo de portada exista y sea válido
             if (!archivoPortada.exists() || (!archivoPortada.getName().endsWith(".png") && !archivoPortada.getName().endsWith(".jpg"))) {
                 System.out.println("El archivo de portada no es válido.");
                 return;
@@ -171,17 +169,13 @@ public class Reproductor {
 
             File destinoMP3 = new File(songsDir, archivoMP3.getName());
 
-            File destinoPortada = new File(songsDir, archivoPortada.getName());
+            //File destinoPortada = new File(songsDir, archivoPortada.getName());
             editar(titulo, artista, album, rutaOriginal, portadaOriginal);
 
             Files.copy(archivoMP3.toPath(), destinoMP3.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            Files.copy(archivoPortada.toPath(), destinoPortada.toPath(), StandardCopyOption.REPLACE_EXISTING);
-            songs.add(new Musica(titulo, artista, album, duracion, destinoMP3.getPath(), destinoPortada.getPath()));
-            System.out.println("Canción agregada exitosamente:");
-            System.out.println("Título: " + titulo);
-            System.out.println("Artista: " + artista);
-            System.out.println("Álbum: " + album);
-            System.out.println("Duración: " + duracion);
+            Files.copy(archivoPortada.toPath(), archivoPortada.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            songs.add(new Musica(titulo, artista, album, duracion, destinoMP3.getPath(), archivoPortada.getPath()));
+           
 
         } catch (Exception e) {
             System.out.println("Error al agregar la canción: " + e.getMessage());
@@ -213,7 +207,7 @@ public class Reproductor {
         }
     }
 
-    public void cargaInicial() {
+    public void cargar() {
         try {
             File[] archivos = songsDir.listFiles((dir, name) -> name.toLowerCase().endsWith(".mp3"));
             if (archivos == null || archivos.length == 0) {
@@ -223,7 +217,6 @@ public class Reproductor {
 
             for (File archivoMP3 : archivos) {
                 try {
-                    // Leer el archivo MP3 y obtener metadatos
                     AudioFile audioFile = AudioFileIO.read(archivoMP3);
                     Tag tag = audioFile.getTag();
 
@@ -235,13 +228,11 @@ public class Reproductor {
                     int segundos = duracionSegundos % 60;
                     String duracion = String.format("%02d:%02d", minutos, segundos);
 
-                    // Buscar una portada asociada (si existe un archivo de imagen con el mismo nombre que el MP3)
                     String rutaPortada = "Sin portada";
                     if (tag != null && tag.getFirstArtwork() != null) {
                         Artwork artwork = tag.getFirstArtwork();
                         byte[] imagenBytes = artwork.getBinaryData();
 
-                        // Guardar la portada en la carpeta de canciones
                         File archivoPortada = new File(songsDir, archivoMP3.getName() + "_cover.jpg");
                         try (FileOutputStream fos = new FileOutputStream(archivoPortada)) {
                             fos.write(imagenBytes);
@@ -249,7 +240,6 @@ public class Reproductor {
                         }
                     }
 
-                    // Agregar canción al arreglo
                     songs.add(new Musica(
                             titulo.isEmpty() ? "Desconocido" : titulo,
                             artista.isEmpty() ? "Desconocido" : artista,
@@ -271,9 +261,20 @@ public class Reproductor {
         
     }
     
-}
+    public void actualizarCanciones() {
+        try {
+           songs.clear();
 
- /* public void cargaInicial() {
+           cargar();
+
+       } catch (Exception e) {
+           System.err.println("Error al actualizar la lista de canciones: " + e.getMessage());
+           e.printStackTrace();
+       }
+    }
+    
+    
+     /* public void cargaInicial() {
         agregarCancion("Run", "One Republic", "Human", "src/Canciones/Run.mp3", "src/Canciones/Run.png");
         agregarCancion("Mente en Blanco", "K4OS", "Single", "src/Canciones/MENTE EN BLANCO.mp3", "src/Canciones/MENTE EN BLANCO.png");
         agregarCancion("Can't Remember to Forget You", "Shakira", "Single", "src/Canciones/Can't Remember to Forget You.mp3", "src/Canciones/Can't Remember to Forget You.png");
@@ -286,3 +287,56 @@ public class Reproductor {
         agregarCancion("True Colors", "Anna Kendrick y Justin Timberlake", "Single", "src/Canciones/True Colors.mp3", "src/Canciones/True Colors.png");
     }*/
     
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    @Override
+    public void guardar() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void eliminar(String nombre) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+    
+}
+
+

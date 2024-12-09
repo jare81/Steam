@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.Usuario;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -44,13 +44,13 @@ import javax.swing.JTextPane;
 
 public class PerfilPANEL extends JPanel {
 
-    private Administrador user;
+    private General user;
     private DefaultListModel<String> modelo;
     private DefaultListModel<String> modelo2;
     private  JList<String> solicitudes;
     private Usuario actual;
 
-    public PerfilPANEL(Administrador user) {
+    public PerfilPANEL(General user) {
         this.user = user;
         actual = user.getUsuarioActual();
         setLayout(new BorderLayout());
@@ -497,17 +497,13 @@ public class PerfilPANEL extends JPanel {
         modelo.clear();
 
         for (Usuario usuario : usuarios) {
-            if (usuario != null) {
-                String estado;
-                if (usuario.equals(actual)) {
-                    estado = "  [ Tú ]";
-                } else if (actual.isAmigo(usuario)) {
-                    estado = "  [ Amigo ]";
-                } else {
-                    estado = "  [ No amigo ]";
-                }
-                modelo.addElement("  @ " + usuario.getUsername() + " " + estado);
+            if (!usuario.equals(actual) && !usuario.getUsername().equalsIgnoreCase("admin")) {
+                String estado = actual.isAmigo(usuario) ? "  [ Amigo ]" : "  [ No amigo ]";
+                modelo.addElement("  @ " + usuario.getUsername() + estado);
             }
+        }
+        if (modelo.isEmpty()) {
+            modelo.addElement("No se encontraron usuarios.");
         }
 
     }

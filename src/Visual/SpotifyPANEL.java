@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.Musica;
 import Codee.Reproductor;
 import Codee.Usuario;
@@ -19,6 +19,12 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -39,6 +45,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
 
 /**
  *
@@ -65,18 +72,25 @@ public class SpotifyPANEL extends JPanel {
     private int indice = 0;
 
     private Reproductor rep;
-    private Administrador user;
+    private General user;
     private JPanel informacion;
     private GridBagConstraints gridT;
     private Usuario actual;
+    
+    private JPanel panelD;
+    private JTextField buscar;
+    private GridBagConstraints gridButtonConstraints;
+    private Timer actualizarTimer;
 
-    public SpotifyPANEL(Administrador user) {
+    public SpotifyPANEL(General user) {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY);
         rep = new Reproductor();
        
         this.user=user;
         actual =user.getUsuarioActual();
+        
+         iniciarTimerActualizacion(); 
         
 
         GridBagConstraints grid = new GridBagConstraints();
@@ -106,7 +120,7 @@ public class SpotifyPANEL extends JPanel {
         gridP.insets = new Insets(0, 0, 0, 50); 
         buscarP.add(imageLabelS, gridP);
 
-        JTextField buscar = new JTextField("Descubre algo nuevo...");
+        buscar = new JTextField();
         buscar.setFont(new Font("Arial", Font.BOLD, 20));
         buscar.setPreferredSize(new Dimension(600, 35));
         gridP.gridx = 1;
@@ -115,6 +129,14 @@ public class SpotifyPANEL extends JPanel {
         gridP.fill = GridBagConstraints.HORIZONTAL;
         gridP.insets = new Insets(0, 0, 0, 5);
         buscarP.add(buscar, gridP);
+        
+        buscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String textoBusqueda = buscar.getText();
+                filtrarCanciones(panelD, textoBusqueda);
+            }
+        });
 
         ImageIcon icon = new ImageIcon("src/imags/lupa32.png");
         Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -152,27 +174,26 @@ public class SpotifyPANEL extends JPanel {
             gridB.gridx = 1;
             bot.add(agregar, gridB);
             
-            agregar.addActionListener(ev -> {new addMusicaFRAME().setVisible(true);});
-
-            JButton eliminar = new JButton(" Eliminar cancion ");
-            eliminar.setPreferredSize(size);
-            gridB.gridy = 0;
-            gridB.gridx = 2;
-            bot.add(eliminar, gridB);
+            agregar.addActionListener(ev -> {
+                new addMusicaFRAME().setVisible(true);
+                
             
-            eliminar.addActionListener(ev -> {});
+            });
+
+           
         }
 
         timeline.add(bot, gridT);
 
-        JPanel panelD = new JPanel(new GridBagLayout());
-        GridBagConstraints gridButtonConstraints = new GridBagConstraints();
+        panelD = new JPanel(new GridBagLayout());
+         gridButtonConstraints = new GridBagConstraints();
         gridButtonConstraints.insets = new Insets(5, 5, 5, 5); 
         gridButtonConstraints.fill = GridBagConstraints.HORIZONTAL; 
         gridButtonConstraints.weightx = 1.0; 
         final int d = 1; 
 
         addButtonToPanelD(panelD, gridButtonConstraints, d);
+        
 
         gridT.gridy = 3;
         gridT.gridx = 0;
@@ -200,6 +221,9 @@ public class SpotifyPANEL extends JPanel {
         informacion.setPreferredSize(new Dimension(300, 200));
         GridBagConstraints gridF = new GridBagConstraints();
         gridF.insets = new Insets(10, 10, 10, 10);
+        
+        
+
 
         ImageIcon icon2 = new ImageIcon(imagen);
         Image img2 = icon2.getImage().getScaledInstance(250, 250, Image.SCALE_SMOOTH);
@@ -258,7 +282,7 @@ public class SpotifyPANEL extends JPanel {
                 artista = rep.getArray().get(index).getArtista();
                 duracion = rep.getArray().get(index).getDuracion();
                 ruta = rep.getArray().get(index).getRuta();
-                imagen = rep.getArray().get(index).getPortada();
+                imagen = rep.getArray().get(index).getFoto();
                 indice = index;
                 mostrar();
             });
@@ -272,6 +296,15 @@ public class SpotifyPANEL extends JPanel {
             col = componentCount % d;
         }
 
+    }
+    
+    private void actualizarPanel(JPanel panel, GridBagConstraints constraints, int columnas) {
+        panel.removeAll();
+
+        addButtonToPanelD(panel, constraints, columnas);
+
+        panel.revalidate();
+        panel.repaint();
     }
 
     private boolean panelVisible = false;
@@ -448,6 +481,49 @@ public class SpotifyPANEL extends JPanel {
         informacion.add(song, gridD);
     }
     
+    private void filtrarCanciones(JPanel panel, String textoBusqueda) {
+        Component[] componentes = panel.getComponents();
+
+        for (Component componente : componentes) {
+            if (componente instanceof JButton) {
+                JButton boton = (JButton) componente;
+                JPanel panelBoton = (JPanel) boton.getComponent(0); 
+                JLabel tituloLabel = (JLabel) panelBoton.getComponent(0); 
+                JLabel artistaLabel = (JLabel) panelBoton.getComponent(1); 
+
+                String titulo = tituloLabel.getText().toLowerCase();
+                String artista = artistaLabel.getText().toLowerCase();
+
+                if (titulo.contains(textoBusqueda.toLowerCase()) || 
+                    artista.contains(textoBusqueda.toLowerCase())) {
+                    boton.setVisible(true); 
+                } else {
+                    boton.setVisible(false); 
+                }
+            }
+        }
+
+        panel.revalidate();
+        panel.repaint();
+    }
+    
+    private void iniciarTimerActualizacion() {
+        int delay = 5000; 
+        actualizarTimer = new Timer(delay, e -> {
+            rep.actualizarCanciones(); 
+            actualizarPanel(panelD, gridButtonConstraints, 1); 
+        });
+        actualizarTimer.start(); 
+    }
+    
+    private void detenerTimerActualizacion() {
+        if (actualizarTimer != null) {
+            actualizarTimer.stop();
+        }
+    }
+
+
+    
    
     
     public boolean getPlaying(){
@@ -459,8 +535,15 @@ public class SpotifyPANEL extends JPanel {
         com.setForeground(new Color(0, 0, 0));
     }
 
-    public void actualizarContenido(String info) {
-        // Método para actualizar contenido dinámico si es necesario
+    public void actualizarContenido() {
+        rep.actualizarCanciones();
+        actualizarPanel(panelD, gridButtonConstraints, 1);
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+        detenerTimerActualizacion();
+        super.finalize();
     }
     
     

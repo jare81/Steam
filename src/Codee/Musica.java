@@ -6,21 +6,22 @@ package Codee;
 
 
 
-public class Musica {
+public class Musica extends ArchivoMultimedia {
     private String titulo;
     private String artista;
     private String album;
     private String duracion;
-    private String portada;
+    private String foto;
     private String ruta;
     
-    public Musica(String titulo, String artista, String album, String duracion, String ruta, String portada){
+    public Musica(String titulo, String artista, String album, String duracion, String ruta, String foto){
+        super(titulo, ruta, foto);
         this.titulo = titulo;
         this.artista=artista;
         this.album=album;
         this.duracion=duracion;
         this.ruta=ruta;
-        this.portada=portada;
+        this.foto=foto;
         
     }
      
@@ -40,17 +41,24 @@ public class Musica {
         return duracion;
     }
     
+    @Override
     public String getRuta(){
         return ruta;
     }
     
-     public String getPortada() {
-        return portada;
+    @Override
+     public String getFoto() {
+        return foto;
     }
    
      @Override
     public String toString() {
         return "Titulo: " + titulo + ", Artista: " + artista + ", album: " + album + ", Ruta: " + ruta;
+    }
+
+    @Override
+    public void ver() {
+        System.out.println("Reproduciendo canción: " + getNombre());
     }
 
     

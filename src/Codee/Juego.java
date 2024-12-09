@@ -11,7 +11,7 @@ import java.util.Date;
  *
  * @author Dell
  */
-public class Juego {
+public class Juego extends ArchivoMultimedia {
     private String nombre;
     private String genero;
     private String desarrollador;
@@ -21,6 +21,7 @@ public class Juego {
     
     
     public Juego(String nombre, String genero, String desarrollador, String lanzamiento, String ruta, String foto){
+        super(nombre, ruta, foto);
         this.nombre=nombre;
         this.genero=genero;
         this.desarrollador=desarrollador;
@@ -30,6 +31,7 @@ public class Juego {
         
     }
 
+    @Override
     public String getNombre() {
         return nombre;
     }
@@ -46,11 +48,18 @@ public class Juego {
         return lanzamiento;
     }
 
+    @Override
     public String getRuta() {
         return ruta;
     }
+    @Override
     public String getFoto() {
         return foto;
+    }
+
+    @Override
+    public void ver() {
+        System.out.println("Iniciando juego: " + getNombre());
     }
     
 }

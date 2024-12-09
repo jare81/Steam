@@ -4,7 +4,6 @@
  */
 package Codee;
 
-import Chat.OtroChat;
 import Visual.MenuFRAME;
 import javax.swing.SwingUtilities;
 
@@ -15,7 +14,7 @@ import javax.swing.SwingUtilities;
 public class Main { 
 
     public static void main(String[] args) {
-        Administrador manejo = new Administrador();
+        General manejo = new General();
 
         MenuFRAME menu = new MenuFRAME(manejo);
         menu.setVisible(true);

@@ -16,7 +16,7 @@ import java.util.Date;
  *
  * @author Dell
  */
-public class JuegoManager {
+public class JuegoManager implements Gestionable {
     private File gameDir;
     private SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd");
     private ArrayList<Juego> games;
@@ -28,7 +28,7 @@ public class JuegoManager {
             gameDir.mkdir();
         }
         games = new ArrayList<>();
-        cargaInicial();
+        cargar();
     }
     
     public ArrayList<Juego> getArray(){
@@ -37,14 +37,12 @@ public class JuegoManager {
     
     public void agregarJuego(String nombre, String genero, String desarrollador, String lanzamiento, String ruta, String foto) {
         try {
-            //Date fechaLanzamiento = dateFormat.parse(lanzamiento);
 
             File gameFile = new File(gameDir, nombre + ".game");
             String rutaA = gameFile.getPath();
             
             Juego nuevoJuego = new Juego(nombre, genero, desarrollador, lanzamiento, rutaA, foto);
             
-            // Guardar en archivo binario
            
             try (RandomAccessFile raf = new RandomAccessFile(gameFile, "rw")) {
                 raf.writeUTF(nuevoJuego.getNombre());
@@ -55,11 +53,9 @@ public class JuegoManager {
                 raf.writeUTF(nuevoJuego.getFoto());
             }
 
-            // Agregar a la lista
             games.add(nuevoJuego);
             System.out.println("Juego agregado a la lista: " + nuevoJuego.getNombre());
             System.out.println("Total de juegos en la lista: " + games.size());
-            //System.out.println("Juego agregado exitosamente.");
         
         } catch (IOException e) {
             System.err.println("Error al guardar el juego: " + e.getMessage());
@@ -83,7 +79,8 @@ public class JuegoManager {
     
     
     
-    private void cargaInicial() {
+    @Override
+    public void cargar() {
         if (gameDir.exists() && gameDir.isDirectory()) {
             File[] files = gameDir.listFiles((dir, name) -> name.endsWith(".game"));
             if (files != null) {
@@ -103,6 +100,70 @@ public class JuegoManager {
                 }
             }
         }
+    }
+    
+    public void actualizarJuegos() {
+        try {
+           games.clear();
+
+           cargar();
+
+       } catch (Exception e) {
+           System.err.println("Error al actualizar la lista de canciones: " + e.getMessage());
+           e.printStackTrace();
+       }
+    }
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+
+    @Override
+    public void guardar() {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
+    }
+
+    @Override
+    public void eliminar(String nombre) {
+        throw new UnsupportedOperationException("Not supported yet."); // Generated from nbfs://nbhost/SystemFileSystem/Templates/Classes/Code/GeneratedMethodBody
     }
     
     

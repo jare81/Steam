@@ -12,13 +12,12 @@ public class GestorConversaciones {
     }
     
     public static String obtenerArchivoConversacion(String usuario1, String usuario2) {
-    // Ordenar los nombres alfabéticamente
     String usuarioA = usuario1.compareTo(usuario2) < 0 ? usuario1 : usuario2;
     String usuarioB = usuario1.compareTo(usuario2) < 0 ? usuario2 : usuario1;
 
     String nombreArchivo = "Chat/" + usuarioA + "_" + usuarioB + ".bin";
 
-    return nombreArchivo; // Siempre genera el mismo archivo para ambos usuarios
+    return nombreArchivo;
 }
 
 

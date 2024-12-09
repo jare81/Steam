@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.Usuario;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -33,9 +33,9 @@ import javax.swing.SwingConstants;
  * @author Dell
  */
 public class RegistroFRAME extends JFrame {
-private Administrador user;
+private General user;
     
-    public RegistroFRAME(Administrador user) {
+    public RegistroFRAME(General user) {
         this.user=user;
         LocalDate today = LocalDate.now();
         

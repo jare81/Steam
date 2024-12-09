@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.JuegoManager;
 import Codee.Usuario;
 import java.awt.BorderLayout;
@@ -18,6 +18,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyAdapter;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import java.util.Date;
 import javax.swing.BorderFactory;
@@ -31,6 +33,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
 import javax.swing.SwingConstants;
+import javax.swing.Timer;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 /**
  *
@@ -50,21 +55,27 @@ public class SteamPANEL extends JPanel {
     private ImageIcon down;
     
 
-    private Administrador user;
+    private General user;
     private Usuario actual;
     private JuegoManager dev;
 
     private JPanel informacion;
+    private JPanel panelD;
+    private GridBagConstraints gridButtonConstraints;
     private GridBagConstraints gridT;
+     private Timer actualizarTimer;
 
     private GridBagConstraints gridB;
+    private JTextField buscar;
 
-    public SteamPANEL(Administrador user) {
+    public SteamPANEL(General user) {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY);
         this.user = user;
         actual = user.getUsuarioActual();
         dev = new JuegoManager();
+        
+        iniciarTimerActualizacion(); 
 
         GridBagConstraints grid = new GridBagConstraints();
         grid.insets = new Insets(10, 10, 10, 10);
@@ -93,15 +104,26 @@ public class SteamPANEL extends JPanel {
         gridP.insets = new Insets(0, 0, 0, 50);
         buscarP.add(imageLabelS, gridP);
 
-        JTextField buscar = new JTextField("Descubre algo nuevo...");
+       buscar = new JTextField();
+        buscar.setPreferredSize(new Dimension(600, 35));  
+            
         buscar.setFont(new Font("Arial", Font.BOLD, 20));
-        buscar.setPreferredSize(new Dimension(600, 35));
+        
         gridP.gridx = 1;
         gridP.gridy = 0;
         gridP.weightx = 1.0;
         gridP.fill = GridBagConstraints.HORIZONTAL;
         gridP.insets = new Insets(0, 0, 0, 5);
         buscarP.add(buscar, gridP);
+        
+        buscar.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyReleased(KeyEvent e) {
+                String textoBusqueda = buscar.getText();
+                filtrarJuegos(panelD, textoBusqueda);
+            }
+        });
+        
 
         ImageIcon icon = new ImageIcon("src/imags/lupa32.png");
         Image img = icon.getImage().getScaledInstance(40, 40, Image.SCALE_SMOOTH);
@@ -140,20 +162,13 @@ public class SteamPANEL extends JPanel {
                 new AddJuegoFRAME().setVisible(true);
             });
 
-            JButton eliminar = new JButton("Eliminar juego");
-            eliminar.setPreferredSize(size);
-            gridB.gridy = 0;
-            gridB.gridx = 2;
-            bot.add(eliminar, gridB);
-
-            eliminar.addActionListener(ev -> {
-            });
+            
         }
 
         timeline.add(bot, gridT);
 
-        JPanel panelD = new JPanel(new GridBagLayout());
-        GridBagConstraints gridButtonConstraints = new GridBagConstraints();
+        panelD = new JPanel(new GridBagLayout());
+        gridButtonConstraints = new GridBagConstraints();
         gridButtonConstraints.insets = new Insets(5, 5, 5, 5);
         gridButtonConstraints.fill = GridBagConstraints.HORIZONTAL;
         gridButtonConstraints.weightx = 1.0;
@@ -192,90 +207,7 @@ public class SteamPANEL extends JPanel {
 
         add(informacion, BorderLayout.EAST);
 
-        /*JPanel descripcion = new JPanel();
-        descripcion.setBackground(Color.LIGHT_GRAY);
-        descripcion.setLayout(new GridBagLayout());
-        gridF.gridy = 1;
-        gridF.gridx = 0;
-        gridF.insets = new Insets(5, 5, 5, 5);
-        informacion.add(descripcion, gridF);
         
-        
-
-        GridBagConstraints gridD = new GridBagConstraints();
-        gridD.insets = new Insets(10, 10, 10, 10);
-
-        // Primera fila
-        gridD.gridy = 0;
-        gridD.gridx = 0;
-        descripcion.add(new JLabel("Nombre:         "), gridD);
-
-        gridD.gridx = 1;
-        descripcion.add(new JLabel("  PVZ   "), gridD);
-
-        // Segunda fila
-        gridD.gridy = 1;
-        gridD.gridx = 0;
-        descripcion.add(new JLabel("Genero:         "), gridD);
-
-        gridD.gridx = 1;
-        descripcion.add(new JLabel("  zombies   "), gridD);
-
-        //tercera fila
-        gridD.gridy = 2;
-        gridD.gridx = 0;
-        descripcion.add(new JLabel("Desarrollador:         "), gridD);
-
-        gridD.gridx = 1;
-        descripcion.add(new JLabel("  Sepa la bola   "), gridD);
-
-        //cuarta fila
-        gridD.gridy = 3;
-        gridD.gridx = 0;
-        descripcion.add(new JLabel("Lanzamiento:         "), gridD);
-
-        gridD.gridx = 1;
-        descripcion.add(new JLabel("  10/12/2024  "), gridD);
-        //quinta fila
-
-        gridD.gridy = 4;
-        gridD.gridx = 0;
-        descripcion.add(new JLabel("Ruta:         "), gridD);
-
-        gridD.gridx = 1;
-        descripcion.add(new JLabel("  documentos/quetal   "), gridD);*/
- /*JPanel game = new JPanel(new GridBagLayout());
-            GridBagConstraints gridS = new GridBagConstraints();
-            game.setBackground(Color.LIGHT_GRAY);
-            gridS.insets = new Insets(5, 5, 5, 5); 
-            gridD.gridy = 5;
-            gridD.gridx = 0;
-            
-            
-            
-            JButton back = new JButton("Añadir");
-            gridB.gridy = 0;
-            gridB.gridx = 1;
-            game.add(back, gridS);
-            
-           
-            JButton play = new JButton("Jugar");
-            gridB.gridy = 0;
-            gridB.gridx = 2;
-            game.add(play, gridS);
-            
-            
-
-            JButton next = new JButton("Reseña");
-            gridB.gridy = 0;
-            gridB.gridx = 3;
-            game.add(next, gridS);
-            
-          
-           
-            
-            
-            informacion.add(game, gridD);*/
         add(timeline, BorderLayout.WEST);
 
     }
@@ -338,6 +270,16 @@ public class SteamPANEL extends JPanel {
         }
 
     }
+    
+    private void actualizarPanel(JPanel panel, GridBagConstraints constraints, int columnas) {
+        panel.removeAll();
+
+        addButtonToPanelD(panel, constraints, columnas);
+
+        panel.revalidate();
+        panel.repaint();
+    }
+    
 
     private boolean panelVisible = false;
 
@@ -466,15 +408,54 @@ public class SteamPANEL extends JPanel {
         informacion.add(game, gridD);
 
     }
-    
-    public void actualizarContenido() {
-        // Aquí actualizas el contenido dinámico del panel
-        System.out.println("Actualizando contenido de Steam...");
-        // Por ejemplo, recargar listas, datos, etc.
+    private void filtrarJuegos(JPanel panel, String textoBusqueda) {
+    Component[] componentes = panel.getComponents();
+
+    for (Component componente : componentes) {
+        if (componente instanceof JButton) {
+            JButton boton = (JButton) componente;
+            JPanel panelBoton = (JPanel) boton.getComponent(0); 
+            JLabel labelNombre = (JLabel) panelBoton.getComponent(2); 
+
+            String nombreJuego = labelNombre.getText().toLowerCase();
+            if (nombreJuego.contains(textoBusqueda.toLowerCase())) {
+                boton.setVisible(true); 
+            } else {
+                boton.setVisible(false); 
+            }
+        }
     }
 
-    public void actualizarContenido(String info) {
-        // Método para actualizar contenido dinámico si es necesario
+        panel.revalidate();
+        panel.repaint();
     }
+    
+     private void iniciarTimerActualizacion() {
+        int delay = 5000; 
+        actualizarTimer = new Timer(delay, e -> {
+            dev.actualizarJuegos(); 
+            actualizarPanel(panelD, gridButtonConstraints, 3); 
+        });
+        actualizarTimer.start(); 
+    }
+    
+    private void detenerTimerActualizacion() {
+        if (actualizarTimer != null) {
+            actualizarTimer.stop();
+        }
+    }
+
+
+    public void actualizarContenido() {
+      dev.actualizarJuegos();
+      actualizarPanel(panelD, gridButtonConstraints, 3);
+    }
+    
+    @Override
+    protected void finalize() throws Throwable {
+        detenerTimerActualizacion();
+        super.finalize();
+    }
+    
 
 }

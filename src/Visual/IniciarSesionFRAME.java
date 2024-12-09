@@ -1,6 +1,6 @@
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -26,9 +26,9 @@ import javax.swing.SwingConstants;
  */
 public class IniciarSesionFRAME extends JFrame {
 
-    private Administrador user;
+    private General user;
 
-    public IniciarSesionFRAME(Administrador user) {
+    public IniciarSesionFRAME(General user) {
         this.user = user;
 
          setSize(800, 600);

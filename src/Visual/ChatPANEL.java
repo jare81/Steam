@@ -11,7 +11,7 @@ import Chat.Mensaje;
 import Chat.Servidor;
 import Chat.OtroChat;
 import Codee.Amigos;
-import Codee.Administrador;
+import Codee.General;
 import Codee.Usuario;
 import java.awt.BorderLayout;
 import java.awt.Color;
@@ -90,7 +90,7 @@ public class ChatPANEL extends JPanel implements Observer {
    
     
     
-    private Administrador user;
+    private General user;
     private Usuario actual;
     private Usuario usuario;
     private DefaultListModel<String> modelo;
@@ -104,7 +104,7 @@ public class ChatPANEL extends JPanel implements Observer {
     private JLabel labelImagen;
     private JTextArea info;
 
-    public ChatPANEL(Administrador user) {
+    public ChatPANEL(General user) {
         this.user = user;
         actual = user.getUsuarioActual();
         setLayout(new BorderLayout());
@@ -203,7 +203,7 @@ public class ChatPANEL extends JPanel implements Observer {
         areaT.setBackground(new Color(0xB5BAC9));
         areaT.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         
-         Servidor.getInstance(6000).addObserver(this);
+        Servidor.getInstance(6000).addObserver(this);
         JScrollPane scrollArea = new JScrollPane(areaT);
         scrollArea.setPreferredSize(new Dimension(400, 100)); 
         panelArea.add(scrollArea, grid);
@@ -377,7 +377,7 @@ public class ChatPANEL extends JPanel implements Observer {
         modelo.clear();
 
         for (Usuario usuario : usuarios) {
-            if (!usuario.equals(actual)) {
+            if (!usuario.equals(actual)&& !usuario.getUsername().equalsIgnoreCase("admin")) {
                 String estado = actual.isAmigo(usuario) ? "  [ Amigo ]" : "  [ No amigo ]";
                 modelo.addElement("  @ " + usuario.getUsername() + estado);
             }

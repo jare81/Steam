@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.Juego;
 import Codee.JuegoManager;
 import Codee.Reproductor;
@@ -38,7 +38,7 @@ import javax.swing.SwingConstants;
  */
 public class BibliotecaPANEL extends JPanel {
 
-    private Administrador user;
+    private General user;
     private Usuario actual;
 
     private JPanel informacion;
@@ -52,6 +52,7 @@ public class BibliotecaPANEL extends JPanel {
     private String albumM = "";
     private String rutaM = "";
     private String imagenM = "";
+    private String duracionM="";
     private int indiceM = 0;
     private ImageIcon playIcon;
     private ImageIcon pauseIcon;
@@ -78,7 +79,7 @@ public class BibliotecaPANEL extends JPanel {
     private JPanel juegos;
     private GridBagConstraints grid2;
 
-    public BibliotecaPANEL(Administrador user) {
+    public BibliotecaPANEL(General user) {
         setLayout(new GridBagLayout());
         setBackground(Color.LIGHT_GRAY);
 
@@ -109,7 +110,7 @@ public class BibliotecaPANEL extends JPanel {
         addButtonToPanelDMusica(musica, gridButtonConstraints, d);
 
         JScrollPane musicaScrollPane = new JScrollPane(musica);
-        musicaScrollPane.setPreferredSize(new Dimension(900, 350)); // Tamaño visible
+        musicaScrollPane.setPreferredSize(new Dimension(900, 350)); 
         musicaScrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
         musicaScrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 
@@ -151,18 +152,17 @@ public class BibliotecaPANEL extends JPanel {
         informacion.add(imageLabel2);
 
         gridInfo = new GridBagConstraints();
-        gridInfo.gridx = 1; // A la derecha
-        gridInfo.gridy = 0; // En la misma fila
-        gridInfo.gridheight = 2; // Abarca ambas filas
+        gridInfo.gridx = 1; 
+        gridInfo.gridy = 0; 
+        gridInfo.gridheight = 2; 
         gridInfo.fill = GridBagConstraints.VERTICAL;
 
-        add(informacion, gridInfo); // Añade el panel al contenedor principal
+        add(informacion, gridInfo); 
         informacion.setVisible(false);
 
     }
 
     private void actualizarInformacionMusica() {
-        // Limpiar el contenido del panel
         informacion.removeAll();
 
         informacion.setBackground(Color.LIGHT_GRAY);
@@ -219,7 +219,7 @@ public class BibliotecaPANEL extends JPanel {
         descripcion.add(new JLabel("Duracion: "), gridD);
 
         gridD.gridx = 1;
-        descripcion.add(new JLabel("3:00"), gridD); // Reemplaza con duración real si está disponible
+        descripcion.add(new JLabel(duracionM), gridD); 
 
         gridD.gridy = 4;
         gridD.gridx = 0;
@@ -228,7 +228,6 @@ public class BibliotecaPANEL extends JPanel {
         gridD.gridx = 1;
         descripcion.add(new JLabel(rutaM), gridD);
 
-        // Actualizar visualización del panel
         informacion.revalidate();
         informacion.repaint();
 
@@ -358,8 +357,9 @@ public class BibliotecaPANEL extends JPanel {
                 tituloM = user.getCanciones().get(index).getTitulo();
                 albumM = user.getCanciones().get(index).getAlbum();
                 artistaM = user.getCanciones().get(index).getArtista();
+                duracionM = user.getCanciones().get(index).getDuracion();
                 rutaM = user.getCanciones().get(index).getRuta();
-                imagenM = user.getCanciones().get(index).getPortada();
+                imagenM = user.getCanciones().get(index).getFoto();
                 
                 actualizarInformacionMusica();
 
@@ -488,7 +488,7 @@ public class BibliotecaPANEL extends JPanel {
                 }
 
                 bnAdd.setIcon(user.verificarJuego(nombreJ) ? down : noDown);
-                refrescarListaJuegos(juegos, grid2, 4); // Por ejemplo, 3 columnas
+                refrescarListaJuegos(juegos, grid2, 4); 
             }
         });
 
@@ -527,7 +527,7 @@ public class BibliotecaPANEL extends JPanel {
             juegoLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
             buttonPanel.add(imageLabel2);
-            buttonPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Espaciado entre imagen y texto
+            buttonPanel.add(Box.createRigidArea(new Dimension(0, 5)));
             buttonPanel.add(juegoLabel);
 
             newButton.add(buttonPanel, BorderLayout.CENTER);
@@ -545,10 +545,8 @@ public class BibliotecaPANEL extends JPanel {
                 
                 actualizarInformacionJuego();
 
-                // Asegúrate de que el panel sea visible
                 informacion.setVisible(true);
 
-                // Revalida y repinta el contenedor principal para reflejar los cambios
                 revalidate();
                 repaint();
             });
@@ -584,14 +582,12 @@ public class BibliotecaPANEL extends JPanel {
 
 
     private void mostrarInformacion(boolean esMusica) {
-        // Método unificado para mostrar información
         if (esMusica) {
             actualizarInformacionMusica();
         } else {
             actualizarInformacionJuego();
         }
 
-        // Añadir panel de información si no está ya añadido
         if (!informacion.isVisible()) {
             add(informacion, gridInfo);
             informacion.setVisible(true);
@@ -610,7 +606,6 @@ public class BibliotecaPANEL extends JPanel {
     }
     
      public void actualizarContenido() {
-        System.out.println("Actualizando contenido de Steam...");
         user.actualizarJuegos();
         refrescarListaJuegos(juegos, grid2, 4);
         
@@ -619,7 +614,5 @@ public class BibliotecaPANEL extends JPanel {
         
     }
 
-    public void actualizarContenido(String info) {
-        // Método para actualizar contenido dinámico si es necesario
-    }
+    
 }

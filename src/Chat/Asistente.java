@@ -1,6 +1,7 @@
 package Chat;
 
 import java.io.DataInputStream;
+import java.io.EOFException;
 import java.io.IOException;
 import java.net.Socket;
 import java.util.logging.Level;
@@ -41,9 +42,11 @@ public class Asistente implements Runnable {
 
                 
                 //leo el mensaje del cliente
-                mensaje = in.readUTF();
-
-                if (mensaje.equalsIgnoreCase("cerrar")) {
+                
+                try {
+                 mensaje = in.readUTF();
+                 
+                  if (mensaje.equalsIgnoreCase("cerrar")) {
 
                     centinela = false;
 
@@ -52,9 +55,17 @@ public class Asistente implements Runnable {
                     sc.close();
 
                 } else {
-                    //envio el mensaje al servidor
                     Servidor.instancia.notificacion(mensaje);
                 }
+                } catch (EOFException e) {
+                    System.out.println("El flujo de datos se cerró inesperadamente");
+                    break; 
+                } catch (IOException e) {
+                    e.printStackTrace();  
+                }
+                
+
+               
 
             }
 

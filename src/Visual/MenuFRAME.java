@@ -4,7 +4,7 @@
  */
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Font;
@@ -25,9 +25,9 @@ import javax.swing.JPanel;
  * @author Dell
  */
 public class MenuFRAME extends JFrame {
-     private Administrador user;
+     private General user;
     
-    public MenuFRAME(Administrador user) {
+    public MenuFRAME(General user) {
         this.user=user;
         setSize(800, 600);
         setBackground(new Color(0x536878));

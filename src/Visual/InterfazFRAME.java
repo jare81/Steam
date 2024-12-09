@@ -1,6 +1,6 @@
 package Visual;
 
-import Codee.Administrador;
+import Codee.General;
 import Codee.Reproductor;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -23,12 +23,12 @@ import javax.swing.SwingConstants;
 
 
 public class InterfazFRAME extends JFrame {
-    private Administrador user;
+    private General user;
     private CardLayout cardLayout;
     private JPanel contenido;
     private Reproductor rep;
     
-    public InterfazFRAME(Administrador user) {
+    public InterfazFRAME(General user) {
        this.user=user;
        rep = new Reproductor();
         
@@ -153,10 +153,13 @@ public class InterfazFRAME extends JFrame {
 
         add(menu, BorderLayout.WEST);
         
-        spotiB.addActionListener(e -> cardLayout.show(contenido, "Spotify"));
+        spotiB.addActionListener(e -> { 
+         spotify.actualizarContenido();   
+         cardLayout.show(contenido, "Spotify");
+        });
         
         steamB.addActionListener(e -> {
-            // Actualiza el contenido del panel Steam
+           steam.actualizarContenido();  
             cardLayout.show(contenido, "Steam");
         });
         
@@ -165,7 +168,7 @@ public class InterfazFRAME extends JFrame {
         perfilB.addActionListener(e -> cardLayout.show(contenido, "Perfil"));
         
         biblioB.addActionListener(e -> {
-            biblio.actualizarContenido(); // Actualiza el contenido del panel Biblioteca
+            biblio.actualizarContenido();
             cardLayout.show(contenido, "Biblioteca");
         });
         
