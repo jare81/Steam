@@ -300,8 +300,8 @@ public class ChatPANEL extends JPanel implements Observer {
         // Área de resultados
         grid.gridy++;
         //JList<String> resultadosArea = new JList<>(modelo); estiloF(resultadosArea);
-        resultados = user.getTodosUsuarios();
-        cargarLista(resultados, actual);
+        //resultados = user.getTodosUsuarios();
+       // cargarLista(resultados, actual);
         resultadosArea = new JList<>(modelo);
           
         
@@ -322,7 +322,7 @@ public class ChatPANEL extends JPanel implements Observer {
            
                 int seleccionado = resultadosArea.getSelectedIndex();
 
-                 if (seleccionado != -1 && modelo.size() > 0)  {
+                 if (seleccionado != -1 && seleccionado < resultados.size())  {
                     Usuario usuarioSeleccionado = resultados.get(seleccionado);
 
                 JOptionPane.showMessageDialog(null, "Seleccionado " + usuarioSeleccionado.getUsername());
@@ -392,7 +392,6 @@ public class ChatPANEL extends JPanel implements Observer {
           if (isOn) {
             JOptionPane.showMessageDialog(null, "El servidor ya está encendido.", "Servidor Activo", JOptionPane.INFORMATION_MESSAGE);
 
-            // Si el servidor ya está activo, traer al frente la ventana del servidor
             OtroChat.getInstance(actual, destino).toFront();
             OtroChat.getInstance(actual, destino).repaint();
             return;
@@ -445,12 +444,14 @@ public class ChatPANEL extends JPanel implements Observer {
    private void buscarUsuarios() {
     String palabraClave = txtBuscar.getText().trim();
     if (palabraClave.isEmpty()) {
-        resultados = user.getTodosUsuarios();
+       resultados = user.getTodosUsuarios();
     } else {
         resultados = user.buscarUsuarios(palabraClave);
     }
     cargarLista(resultados, actual);
 }
+   
+   
    
     
    

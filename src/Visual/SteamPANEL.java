@@ -8,6 +8,7 @@ import Codee.General;
 import Codee.JuegoManager;
 import Codee.Usuario;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -18,6 +19,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -64,18 +67,36 @@ public class SteamPANEL extends JPanel {
     private GridBagConstraints gridButtonConstraints;
     private GridBagConstraints gridT;
      private Timer actualizarTimer;
+     
+    private CardLayout cardLayout;
+    private JPanel contenido;
 
     private GridBagConstraints gridB;
     private JTextField buscar;
 
-    public SteamPANEL(General user) {
+    public SteamPANEL(General user, CardLayout cardLayout, JPanel contenido) {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY);
         this.user = user;
         actual = user.getUsuarioActual();
         dev = new JuegoManager();
         
+        this.cardLayout = cardLayout;
+        this.contenido = contenido; 
+        
         iniciarTimerActualizacion(); 
+        
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                iniciarTimerActualizacion(); 
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                detenerTimerActualizacion(); 
+            }
+        });
 
         GridBagConstraints grid = new GridBagConstraints();
         grid.insets = new Insets(10, 10, 10, 10);
@@ -119,6 +140,7 @@ public class SteamPANEL extends JPanel {
         buscar.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
+                detenerTimerActualizacion(); 
                 String textoBusqueda = buscar.getText();
                 filtrarJuegos(panelD, textoBusqueda);
             }
@@ -150,6 +172,14 @@ public class SteamPANEL extends JPanel {
         gridB.gridy = 0;
         gridB.gridx = 0;
         bot.add(fotoB, gridB);
+        
+        fotoB.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(contenido, "Biblioteca"); 
+            }
+        });
+
 
         if (actual.getUsername().equalsIgnoreCase("admin")) {
             JButton agregar = new JButton("Agregar un juego");
@@ -242,7 +272,7 @@ public class SteamPANEL extends JPanel {
             juegoLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 0, 0));
 
             buttonPanel.add(imageLabel2);
-            buttonPanel.add(Box.createRigidArea(new Dimension(0, 5))); // Espaciado entre imagen y texto
+            buttonPanel.add(Box.createRigidArea(new Dimension(0, 5))); 
             buttonPanel.add(juegoLabel);
 
             newButton.add(buttonPanel, BorderLayout.CENTER);
@@ -299,7 +329,6 @@ public class SteamPANEL extends JPanel {
     }
 
     private void actualizarInformacion() {
-        // Limpiar el contenido del panel
         informacion.removeAll();
 
         informacion.setBackground(Color.LIGHT_GRAY);
@@ -308,7 +337,6 @@ public class SteamPANEL extends JPanel {
         GridBagConstraints gridF = new GridBagConstraints();
         gridF.insets = new Insets(10, 10, 10, 10);
 
-        // Agregar la imagen
         ImageIcon icon2 = new ImageIcon(imagen);
         Image img2 = icon2.getImage().getScaledInstance(200, 300, Image.SCALE_SMOOTH);
         ImageIcon resizedIcon2 = new ImageIcon(img2);
@@ -317,7 +345,6 @@ public class SteamPANEL extends JPanel {
         gridF.gridx = 0;
         informacion.add(imageLabel2, gridF);
 
-        // Crear el panel de descripción
         JPanel descripcion = new JPanel();
         descripcion.setBackground(Color.LIGHT_GRAY);
         descripcion.setLayout(new GridBagLayout());
@@ -360,7 +387,6 @@ public class SteamPANEL extends JPanel {
 
         gridD.gridx = 1;
         descripcion.add(new JLabel(lanzamiento), gridD);
-        //quinta fila
 
         gridD.gridy = 4;
         gridD.gridx = 0;
@@ -369,7 +395,6 @@ public class SteamPANEL extends JPanel {
         gridD.gridx = 1;
         descripcion.add(new JLabel(ruta), gridD);
 
-        // Actualizar visualización del panel
         informacion.revalidate();
         informacion.repaint();
 

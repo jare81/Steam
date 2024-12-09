@@ -9,6 +9,7 @@ import Codee.Musica;
 import Codee.Reproductor;
 import Codee.Usuario;
 import java.awt.BorderLayout;
+import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
@@ -19,6 +20,8 @@ import java.awt.Image;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
 import java.awt.event.KeyAdapter;
@@ -81,8 +84,11 @@ public class SpotifyPANEL extends JPanel {
     private JTextField buscar;
     private GridBagConstraints gridButtonConstraints;
     private Timer actualizarTimer;
+    
+     private CardLayout cardLayout;
+    private JPanel contenido;
 
-    public SpotifyPANEL(General user) {
+    public SpotifyPANEL(General user, CardLayout cardLayout, JPanel contenido) {
         setLayout(new BorderLayout());
         setBackground(Color.LIGHT_GRAY);
         rep = new Reproductor();
@@ -90,7 +96,22 @@ public class SpotifyPANEL extends JPanel {
         this.user=user;
         actual =user.getUsuarioActual();
         
+        this.cardLayout = cardLayout;
+        this.contenido = contenido; 
+        
          iniciarTimerActualizacion(); 
+         
+         addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentShown(ComponentEvent e) {
+                iniciarTimerActualizacion(); 
+            }
+
+            @Override
+            public void componentHidden(ComponentEvent e) {
+                detenerTimerActualizacion(); 
+            }
+        });
         
 
         GridBagConstraints grid = new GridBagConstraints();
@@ -133,6 +154,7 @@ public class SpotifyPANEL extends JPanel {
         buscar.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
+                detenerTimerActualizacion(); 
                 String textoBusqueda = buscar.getText();
                 filtrarCanciones(panelD, textoBusqueda);
             }
@@ -166,6 +188,13 @@ public class SpotifyPANEL extends JPanel {
         gridB.gridy = 0;
         gridB.gridx = 0;
         bot.add(biblioteca, gridB);
+        
+        biblioteca.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cardLayout.show(contenido, "Biblioteca"); 
+            }
+        });
 
         if (actual.getUsername().equalsIgnoreCase("admin")){
             JButton agregar = new JButton(" Agregar cancion ");
@@ -335,7 +364,7 @@ public class SpotifyPANEL extends JPanel {
         GridBagConstraints gridF = new GridBagConstraints();
         gridF.insets = new Insets(10, 10, 10, 10);
 
-        // Agregar la imagen
+        //  imagen
         ImageIcon icon2 = new ImageIcon(imagen);
         Image img2 = icon2.getImage().getScaledInstance(250, 250, Image.SCALE_SMOOTH);
         ImageIcon resizedIcon2 = new ImageIcon(img2);
@@ -344,7 +373,7 @@ public class SpotifyPANEL extends JPanel {
         gridF.gridx = 0;
         informacion.add(imageLabel2, gridF);
 
-        // Crear el panel de descripción
+        // panel de descripción
         JPanel descripcion = new JPanel();
         descripcion.setBackground(Color.LIGHT_GRAY);
         descripcion.setLayout(new GridBagLayout());
@@ -356,7 +385,7 @@ public class SpotifyPANEL extends JPanel {
         GridBagConstraints gridD = new GridBagConstraints();
         gridD.insets = new Insets(10, 10, 10, 10);
 
-        // Agregar información
+        //  información
         gridD.gridy = 0;
         gridD.gridx = 0;
         descripcion.add(new JLabel("Titulo: "), gridD);

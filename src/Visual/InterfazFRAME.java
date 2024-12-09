@@ -51,9 +51,9 @@ public class InterfazFRAME extends JFrame {
         contenido.setBackground(Color.LIGHT_GRAY);
         add(contenido, BorderLayout.CENTER);
         
-        SpotifyPANEL spotify = new SpotifyPANEL(user);
+        SpotifyPANEL spotify = new SpotifyPANEL(user, cardLayout, contenido);
         
-        SteamPANEL steam = new SteamPANEL(user);
+        SteamPANEL steam = new SteamPANEL(user, cardLayout, contenido);
         PerfilPANEL perfil = new PerfilPANEL(user);
         ChatPANEL chat = new ChatPANEL(user);
         BibliotecaPANEL biblio =  new BibliotecaPANEL(user);
